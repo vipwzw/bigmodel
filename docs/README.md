@@ -39,9 +39,10 @@ uv sync --all-groups          # 已含 torch / transformers / peft / mlx / mlx-l
 | 7 | 评测与追踪 | 困惑度、选择题、指令遵循规则评测、跨实验对比、可复现 | [07-evaluation.md](stages/07-evaluation.md) | ~30 s |
 | 8 | 量化推理与服务 | MLX 4bit/8bit 量化、吞吐/TTFT/显存基准、CLI 生成、OpenAI 兼容服务 | [08-inference-serving.md](stages/08-inference-serving.md) | ~3 min |
 
-## 总复盘
+## 理论册与总复盘
 
-完成 8 个阶段后，请阅读 [CAPSTONE.md](CAPSTONE.md)：实测数据汇总、工程踩坑、本机限制与迁移生产环境的路径。
+- [PRINCIPLES.md](PRINCIPLES.md)：**原理与实测**——每个阶段背后的机器学习机制、公式推导，以及用本仓库真实数据做的验证。
+- [CAPSTONE.md](CAPSTONE.md)：实测数据汇总、工程踩坑、本机限制与迁移生产环境的路径。
 
 ## 技术栈
 
