@@ -14,8 +14,8 @@ from ..data.card import build_dataset_card
 from ..data.clean import CleanConfig, CorpusCleaner
 from ..data.dedup import DedupConfig, Deduper
 from ..data.io import iter_documents, resolve_files
-from ..data.specs import data_config, limit_for, load_resources
 from ..data.sources import fetch_resource
+from ..data.specs import data_config, limit_for, load_resources
 from ..manifest import RunContext
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def process_corpus(
     docs_written = 0
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
-        for index, (document, cleaned) in enumerate(cleaner.run(iter_documents(files, text_field))):
+        for index, (_document, cleaned) in enumerate(cleaner.run(iter_documents(files, text_field))):
             if index % 500 == 0:
                 budget.check()
             if index and index % _PROGRESS_EVERY == 0:

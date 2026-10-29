@@ -1,0 +1,15 @@
+# Stage 8：量化推理与服务
+stage8:
+  model_dir: models/exports/qwen3-0.6b-sft-lora-merged
+  fallback_model_dir: models/Qwen3-0.6B
+  quant_bits: [4, 8]
+  benchmark:
+    prompt: 用一句话解释什么是人工智能。
+    max_tokens: 48
+  mlx_q_bits: 4
+  server:
+    host: 127.0.0.1
+    model_name: qwen3-0.6b-4bit
+  cli:
+    prompt: 用一句话介绍你自己。
+    max_new_tokens: 16

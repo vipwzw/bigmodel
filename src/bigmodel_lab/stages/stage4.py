@@ -12,7 +12,7 @@ import numpy as np
 from ..budget import Budget
 from ..config import LabConfig
 from ..manifest import RunContext
-from ..models.gpt import PRESETS, GPT, GPTConfig
+from ..models.gpt import GPT, PRESETS, GPTConfig
 from ..models.mlx_gpt import MLX_AVAILABLE, MLXGPT, load_from_torch, mlx_throughput, parity_check
 from ..train.precision import default_device
 from ..train.pretrain import PretrainConfig, Pretrainer

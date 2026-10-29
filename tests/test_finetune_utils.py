@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-import torch
 import torch.nn as nn
 
-from bigmodel_lab.finetune.sft import LoraConfigSpec, parameter_report, probe_qlora, write_generation_comparison
+from bigmodel_lab.finetune.sft import (
+    LoraConfigSpec,
+    parameter_report,
+    probe_qlora,
+    write_generation_comparison,
+)
 
 
 def test_parameter_report():

@@ -1,0 +1,67 @@
+# Stage 6：DPO 偏好优化（在 Stage 5 的 SFT 模型之上）
+stage6:
+  sft_model_dir: models/exports/qwen3-0.6b-sft-lora-merged
+  preference_dir: data/processed/stage3/preference/pref_en
+
+  lora:
+    r: 8
+    alpha: 16
+    dropout: 0.05
+    target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+
+  dpo:
+    beta: 0.1
+    sanity:
+      max_steps: 20
+      batch_size: 2
+      grad_accum: 2
+      max_seq_len: 384
+      learning_rate: 0.000005
+      warmup_steps: 2
+      log_every: 5
+      eval_every: 10
+      eval_batches: 2
+      save_every: 10
+      quality_max_new_tokens: 32
+    standard:
+      max_steps: 400
+      batch_size: 2
+      grad_accum: 8
+      max_seq_len: 1024
+      learning_rate: 0.000002
+      warmup_steps: 20
+      log_every: 10
+      eval_every: 50
+      eval_batches: 8
+      save_every: 100
+      quality_max_new_tokens: 48
+
+  monitor:
+    margin_warn: 1.5
+    margin_hard: 3.0
+    quality_drop_ratio: 0.3
+    stop_on_unhealthy: false
+
+  self_play:
+    enabled: true
+    max_pairs: 20
+    max_new_tokens: 40
+    prompts:
+      - 用一句话解释什么是大语言模型。
+      - 给初学者三条学习深度学习的建议。
+      - 解释一下 LoRA 微调的原理。
+
+  quality_prompts:
+    - 用一句话解释什么是大语言模型。
+    - 请用中文写一句关于秋天的诗句。
+
+  generation:
+    prompts:
+      - 用一句话解释什么是大语言模型。
+      - 给初学者三条学习深度学习的建议。
+      - 请用中文写一句关于秋天的诗句。
+      - 解释一下 LoRA 微调的原理。
+      - 如果一个模型回答总是很啰嗦，你会怎么改进？
+    max_new_tokens: 60
+    temperature: 0.7
+    top_p: 0.9

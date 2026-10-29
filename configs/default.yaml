@@ -85,6 +85,27 @@ data:
       language: en
       license: MIT（Anthropic HH-RLHF）
       approx_size_gb: 0.02
+    qwen3_06b:
+      source: modelscope
+      repo_type: model
+      repo_id: Qwen/Qwen3-0.6B
+      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
+      text_field: null
+      language: zh
+      license: Apache-2.0（Qwen3-0.6B）
+      approx_size_gb: 1.6
+      dest: models/Qwen3-0.6B
+    qwen3_17b:
+      source: modelscope
+      repo_type: model
+      repo_id: Qwen/Qwen3-1.7B
+      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
+      text_field: null
+      language: zh
+      license: Apache-2.0（Qwen3-1.7B）
+      approx_size_gb: 3.8
+      dest: models/Qwen3-1.7B
+
   # ---------- Stage 3：分词器、格式化、打包 ----------
   tokenizer:
     vocab_sizes: [16384, 32768]
@@ -108,23 +129,3 @@ data:
   preference:
     max_pairs: 3000
     val_ratio: 0.05
-    qwen3_06b:
-      source: modelscope
-      repo_type: model
-      repo_id: Qwen/Qwen3-0.6B
-      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
-      text_field: null
-      language: zh
-      license: Apache-2.0（Qwen3-0.6B）
-      approx_size_gb: 1.6
-      dest: models/Qwen3-0.6B
-    qwen3_17b:
-      source: modelscope
-      repo_type: model
-      repo_id: Qwen/Qwen3-1.7B
-      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
-      text_field: null
-      language: zh
-      license: Apache-2.0（Qwen3-1.7B）
-      approx_size_gb: 3.8
-      dest: models/Qwen3-1.7B

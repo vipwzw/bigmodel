@@ -10,8 +10,8 @@ from typing import Any
 from ..budget import Budget
 from ..config import PROJECT_ROOT, LabConfig
 from ..data.chat import load_sft_records, mask_sanity_check
-from ..data.specs import load_resources
 from ..data.sources import fetch_resource
+from ..data.specs import load_resources
 from ..finetune.sft import (
     LoraConfigSpec,
     SFTConfig,

@@ -17,7 +17,7 @@ import torch
 from ..budget import Budget, BudgetExceeded
 from ..data.packing import load_packed
 from ..manifest import RunContext
-from ..models.gpt import GPT, GPTConfig, PRESETS
+from ..models.gpt import GPT, PRESETS, GPTConfig
 from .precision import (
     autocast_context,
     default_device,

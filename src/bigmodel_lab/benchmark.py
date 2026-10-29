@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from .budget import Budget
-from .models.gpt import PRESETS, STANDARD_TOKEN_BUDGET, GPT, GPTConfig
+from .models.gpt import GPT, PRESETS, STANDARD_TOKEN_BUDGET, GPTConfig
 
 MATMUL_SIZE = 4096
 SANITY_MATMUL_SIZE = 2048

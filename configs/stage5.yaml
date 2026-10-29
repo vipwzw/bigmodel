@@ -19,7 +19,7 @@ stage5:
       batch_size: 2
       grad_accum: 4
       max_seq_len: 384
-      learning_rate: 0.0001
+      learning_rate: 0.00005
       warmup_steps: 3
       log_every: 5
       eval_every: 15
@@ -32,7 +32,7 @@ stage5:
       batch_size: 2
       grad_accum: 8
       max_seq_len: 1024
-      learning_rate: 0.0001
+      learning_rate: 0.00005
       warmup_steps: 20
       log_every: 10
       eval_every: 100
@@ -43,11 +43,11 @@ stage5:
   compare:
     - name: lora_r16
       lora_r: 16
-      learning_rate: 0.0001
+      learning_rate: 0.00005
       max_steps: 30
     - name: lora_r8
       lora_r: 8
-      learning_rate: 0.0001
+      learning_rate: 0.00005
       max_steps: 30
 
   generation:

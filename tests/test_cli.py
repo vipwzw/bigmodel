@@ -63,3 +63,27 @@ def test_doctor_offline_mode(capsys):
     names = {check["name"] for check in payload["checks"]}
     assert "python" in names
     assert "network" in names
+
+
+def test_run_all_dry_run_lists_all_stages(capsys):
+    exit_code = main(["run", "all", "--dry-run"])
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    for number in range(1, 9):
+        assert f"阶段 {number}" in output
+
+
+def test_clean_dry_run_and_apply(tmp_path, capsys):
+    runs_dir = tmp_path / "runs"
+    for index in range(5):
+        (runs_dir / "stage-1" / f"run-{index}").mkdir(parents=True)
+    exit_code = main(["clean", "--runs-dir", str(runs_dir), "--keep", "2"])
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "将删除 3 个" in output
+    assert len(list((runs_dir / "stage-1").iterdir())) == 5  # dry-run 不删除
+
+    exit_code = main(["clean", "--runs-dir", str(runs_dir), "--keep", "2", "--apply"])
+    assert exit_code == 0
+    remaining = sorted(path.name for path in (runs_dir / "stage-1").iterdir())
+    assert remaining == ["run-3", "run-4"]

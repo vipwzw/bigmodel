@@ -13,8 +13,8 @@ from ..data.instruction import format_instruction_files, write_instruction_split
 from ..data.io import resolve_files
 from ..data.packing import encode_documents, pack_sequences, save_packed, split_records, validate_packed
 from ..data.preference import format_preference_files, write_preference_splits
-from ..data.specs import data_config, limit_for, load_resources
 from ..data.sources import fetch_resource
+from ..data.specs import data_config, limit_for, load_resources
 from ..data.tokenizer import evaluate_tokenizer, load_tokenizer, train_bpe
 from ..manifest import RunContext
 

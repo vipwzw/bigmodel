@@ -17,7 +17,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-from .config import LabConfig, NetworkConfig, PROJECT_ROOT
+from .config import PROJECT_ROOT, LabConfig, NetworkConfig
 
 Status = Literal["PASS", "WARN", "FAIL"]
 
@@ -78,7 +78,8 @@ def _version_of(distribution: str) -> str | None:
 
 def check_python() -> CheckResult:
     version = platform.python_version()
-    if sys.version_info >= (3, 12):
+    major, minor = (int(part) for part in version.split(".")[:2])
+    if (major, minor) >= (3, 12):
         return CheckResult("python", "PASS", f"Python {version}")
     return CheckResult(
         "python", "FAIL", f"Python {version} 过旧（需要 ≥3.12）",

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-from bigmodel_lab.models.gpt import PRESETS, GPT, GPTConfig
+from bigmodel_lab.models.gpt import GPT, PRESETS, GPTConfig
 
 
 def test_preset_param_counts_match_design():

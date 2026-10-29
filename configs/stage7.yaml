@@ -1,0 +1,20 @@
+# Stage 7：评测与实验追踪
+stage7:
+  presets: [s, m, l]
+  data_keys:
+    s: pretrain_zh_bpe16384
+    m: pretrain_zh_bpe32768
+    l: pretrain_zh_bpe32768
+  tokenizers:
+    s: data/processed/stage3/tokenizers/bpe_16384/tokenizer.json
+    m: data/processed/stage3/tokenizers/bpe_32768/tokenizer.json
+    l: data/processed/stage3/tokenizers/bpe_32768/tokenizer.json
+  max_batches: 24
+  mc_benchmark: data/benchmarks/zh_mc.jsonl
+  instruction_benchmark: data/benchmarks/instructions.jsonl
+  generation_eval: true
+  generation_model_dir: models/exports/qwen3-0.6b-sft-lora-merged
+  generation_max_new_tokens: 64
+  reproducibility:
+    ppl_tolerance: 0.001
+    mc_tolerance: 0.0

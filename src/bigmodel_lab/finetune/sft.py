@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import math
 import time
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -14,7 +14,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from ..budget import Budget, BudgetExceeded
-from ..data.chat import IGNORE_INDEX, SFTDataset, collate_sft, load_sft_records, mask_sanity_check
+from ..data.chat import IGNORE_INDEX, SFTDataset, collate_sft
 from ..manifest import RunContext
 from ..train.precision import default_device, driver_memory_gb, empty_cache, mps_available, sync
 
@@ -55,7 +55,8 @@ class SFTConfig:
     device: str = field(default_factory=default_device)
     profile: str = "sanity"
     resume_from: str | None = None
-    dtype: str = "bfloat16"
+    dtype: str = "float32"
+    autocast: bool = True
     max_samples: int | None = None
 
 
@@ -152,14 +153,16 @@ def _build_loader(
 
 
 @torch.no_grad()
-def evaluate_loss(model, loader: DataLoader, *, batches: int, device: str) -> float:
+def evaluate_loss(model, loader: DataLoader, *, batches: int, device: str, autocast: bool = True) -> float:
     model.eval()
     losses: list[float] = []
     for index, batch in enumerate(loader):
         if index >= batches:
             break
         batch = {key: value.to(device) for key, value in batch.items()}
-        outputs = model(**batch)
+        context = torch.autocast(device_type="mps", dtype=torch.bfloat16) if autocast and device == "mps" else nullcontext()
+        with context:
+            outputs = model(**batch)
         losses.append(float(outputs.loss.item()))
     model.train()
     return sum(losses) / len(losses) if losses else float("nan")
@@ -198,6 +201,11 @@ class SFTTrainer:
         train_loader, self.train_dataset = _build_loader(self.train_records, self.tokenizer, config=self.config, shuffle=True)
         val_loader, self.val_dataset = _build_loader(self.val_records, self.tokenizer, config=self.config, shuffle=False)
         return train_loader, val_loader
+
+    def _forward_context(self):
+        if self.config.autocast and self.device == "mps":
+            return torch.autocast(device_type="mps", dtype=torch.bfloat16)
+        return nullcontext()
 
     def _save_adapter(self, directory: Path, step: int, optimizer, scheduler) -> Path:
         directory.mkdir(parents=True, exist_ok=True)
@@ -245,6 +253,9 @@ class SFTTrainer:
             return 0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * progress))
 
         scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=factor)
+        baseline_val_loss = evaluate_loss(self.model, val_loader, batches=config.eval_batches, device=self.device, autocast=config.autocast)
+        self.ctx.log_metrics(stage="sft", kind="eval", step=0, val_loss=round(baseline_val_loss, 6))
+        logger.info("SFT 初始验证损失: %.4f", baseline_val_loss)
         start_step = 0
         if config.resume_from:
             start_step = self._load_resume(Path(config.resume_from), optimizer, scheduler)
@@ -275,14 +286,17 @@ class SFTTrainer:
             optimizer.zero_grad(set_to_none=True)
             step_started = time.perf_counter()
             step_tokens = 0
+            step_loss_sum = 0.0
             for _ in range(config.grad_accum):
                 batch = {key: value.to(self.device) for key, value in next_batch().items()}
-                outputs = self.model(**batch)
+                with self._forward_context():
+                    outputs = self.model(**batch)
                 loss = outputs.loss
                 (loss / config.grad_accum).backward()
-                last_loss = float(loss.item())
+                step_loss_sum += float(loss.item())
                 step_tokens += int(batch["attention_mask"].sum().item())
-            torch.nn.utils.clip_grad_norm_(trainable, config.max_grad_norm)
+            last_loss = step_loss_sum / config.grad_accum
+            grad_norm = torch.nn.utils.clip_grad_norm_(trainable, config.max_grad_norm)
             optimizer.step()
             scheduler.step()
             sync(self.device)
@@ -297,6 +311,7 @@ class SFTTrainer:
                     "preset": f"r{config.lora.r}",
                     "step": step,
                     "loss": round(last_loss, 6),
+                    "grad_norm": round(float(grad_norm), 6),
                     "lr": round(scheduler.get_last_lr()[0], 8),
                     "tokens_seen": tokens_seen,
                     "tokens_per_second": round(step_tokens / max(step_seconds, 1e-9), 1),
@@ -306,13 +321,13 @@ class SFTTrainer:
                 self.ctx.log_metrics(**record)
                 logger.info("[SFT r=%d] step %d/%d loss %.4f tok/s %.0f", config.lora.r, step, config.max_steps, last_loss, record["tokens_per_second"])
             if config.eval_every and step > 0 and step % config.eval_every == 0:
-                val_loss = evaluate_loss(self.model, val_loader, batches=config.eval_batches, device=self.device)
+                val_loss = evaluate_loss(self.model, val_loader, batches=config.eval_batches, device=self.device, autocast=config.autocast)
                 self.ctx.log_metrics(stage="sft", kind="eval", step=step, val_loss=round(val_loss, 6))
             if config.save_every and step > 0 and step % config.save_every == 0:
                 self._save_adapter(self.ctx.checkpoints_dir / "sft" / f"step_{step}", step, optimizer, scheduler)
             step += 1
 
-        final_val_loss = evaluate_loss(self.model, val_loader, batches=config.eval_batches, device=self.device)
+        final_val_loss = evaluate_loss(self.model, val_loader, batches=config.eval_batches, device=self.device, autocast=config.autocast)
         adapter_dir = self._save_adapter(self.ctx.artifact_path("adapter"), step, optimizer, scheduler)
         self.ctx.add_artifact(adapter_dir)
         wall_seconds = time.time() - started
@@ -326,6 +341,7 @@ class SFTTrainer:
             "val_samples": len(self.val_dataset),
             "dataset_stats": self.train_dataset.stats,
             "final_train_loss": round(last_loss, 6),
+            "initial_val_loss": round(baseline_val_loss, 6),
             "final_val_loss": round(final_val_loss, 6),
             "tokens_seen": tokens_seen,
             "wall_seconds": round(wall_seconds, 1),
