@@ -20,3 +20,91 @@ network:
   # 本地代理示例：http://127.0.0.1:1087（ShadowsocksX-NG privoxy）；null 表示直连
   proxy: null
   timeout_seconds: 8.0
+
+# ---------- 数据工程（Stage 2/3/5/6 共用） ----------
+data:
+  # sanity 档每个数据集最多处理的文档数（standard 档为 null = 全量）
+  sanity_max_docs:
+    pretrain_zh: 20000
+    pretrain_en: 3000
+    sft_zh: 5000
+    pref_en: 2000
+  clean:
+    min_chars: 80
+    max_chars: 200000
+    min_unique_char_ratio: 0.02
+    max_symbol_ratio: 0.35
+    min_cjk_ratio: 0.10
+    min_alpha_ratio: 0.50
+  dedup:
+    enabled: true
+    exact: true
+    near: true
+    near_threshold: 0.8
+    shingle_size: 5
+    num_perm: 64
+    bands: 16
+  resources:
+    pretrain_zh:
+      source: modelscope
+      repo_type: dataset
+      repo_id: AI-ModelScope/wikipedia-cn-20230720-filtered
+      files: ["wikipedia-cn-20230720-filtered.jsonl"]
+      text_field: completion
+      language: zh
+      license: CC BY-SA 4.0（中文维基百科）
+      approx_size_gb: 0.5
+    pretrain_en:
+      source: modelscope
+      repo_type: dataset
+      repo_id: AI-ModelScope/TinyStories
+      files:
+        - data/train-00000-of-00004-2d5a1467fff1081b.parquet
+        - data/validation-00000-of-00001-869c898b519ad725.parquet
+      text_field: text
+      language: en
+      license: CDLA-Sharing-1.0
+      approx_size_gb: 0.25
+    sft_zh:
+      source: modelscope
+      repo_type: dataset
+      repo_id: AI-ModelScope/alpaca-data-gpt4-chinese
+      files: ["Alpaca_data_gpt4_zh.jsonl"]
+      text_field: null
+      language: zh
+      license: Apache-2.0（alpaca 中文指令数据）
+      approx_size_gb: 0.08
+    pref_en:
+      source: modelscope
+      repo_type: dataset
+      repo_id: AI-ModelScope/hh-rlhf
+      files:
+        - helpful-base/test.jsonl
+        - harmless-base/test.jsonl
+      text_field: null
+      language: en
+      license: MIT（Anthropic HH-RLHF）
+      approx_size_gb: 0.02
+  # ---------- Stage 3：分词器、格式化、打包 ----------
+  tokenizer:
+    vocab_sizes: [16384, 32768]
+    min_frequency: 2
+    train_docs:
+      sanity: 3000
+      standard: 200000
+    eval_docs: 200
+  packing:
+    block_size: 512
+    sanity_max_tokens:
+      pretrain_zh: 4000000
+      pretrain_en: 1000000
+  split:
+    val_ratio: 0.01
+    test_ratio: 0.01
+  instruction:
+    system_prompt: "你是一个乐于助人的中文助手。"
+    max_chars: 4096
+    val_ratio: 0.05
+  preference:
+    max_pairs: 3000
+    val_ratio: 0.05

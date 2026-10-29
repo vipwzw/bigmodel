@@ -60,7 +60,7 @@
 ### D4 数据与分词器
 - 预训练语料优先级：`AI-ModelScope/wikipedia-cn-20230720-filtered` → `AI-ModelScope/TinyStories`（快速兜底）→ 本地合成语料（完全离线兜底，保证课程可跑通）。
 - SFT 数据：`AI-ModelScope/alpaca-data-gpt4-chinese` 为主，`swift/self-cognition` 可选补充。
-- 偏好数据：`AI-ModelScope/DPO-En-Zh-20k` 子集为主，`AI-ModelScope/ultrafeedback` 备选；另实现 self-play 自造偏好对，使 DPO 阶段不依赖下载。
+- 偏好数据：`AI-ModelScope/hh-rlhf` 测试分片为主（`AI-ModelScope/DPO-En-Zh-20k` 仓库实测为空，弃用），`AI-ModelScope/ultrafeedback` 备选；另实现 self-play 自造偏好对，使 DPO 阶段不依赖公开偏好数据。
 - 分词器：预训练阶段用 `tokenizers` 在本地语料训练 BPE（16k/32k 两档）；微调阶段直接复用 Qwen3 自带分词器。
 - 获取方式：默认 `modelscope` SDK 下载到项目内 `data/`、`models/`（均不入库）；HF 生态模型/数据集可经 `HF_ENDPOINT=https://hf-mirror.com` 直连，或经可选的本地代理访问官方 Hub；训练/评测阶段设置 `HF_HUB_OFFLINE=1`、`TRANSFORMERS_OFFLINE=1`、`HF_DATASETS_OFFLINE=1`，数据只从本地 parquet/json 读取，避免隐式联网挂起；来源、版本与校验和写入获取清单。
 - 备选：只依赖 ModelScope（可用但失去 HF 生态备份）；只依赖官方 HF（直连不可达、强依赖代理）；自建爬取（合规与稳定性差）；tiktoken（下载源不可达风险）。
