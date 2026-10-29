@@ -39,6 +39,10 @@ uv sync --all-groups          # 已含 torch / transformers / peft / mlx / mlx-l
 | 7 | 评测与追踪 | 困惑度、选择题、指令遵循规则评测、跨实验对比、可复现 | [07-evaluation.md](stages/07-evaluation.md) | ~30 s |
 | 8 | 量化推理与服务 | MLX 4bit/8bit 量化、吞吐/TTFT/显存基准、CLI 生成、OpenAI 兼容服务 | [08-inference-serving.md](stages/08-inference-serving.md) | ~3 min |
 
+## 总复盘
+
+完成 8 个阶段后，请阅读 [CAPSTONE.md](CAPSTONE.md)：实测数据汇总、工程踩坑、本机限制与迁移生产环境的路径。
+
 ## 技术栈
 
 | 环节 | 主栈 | Apple 原生对照 | 生产栈对照 |

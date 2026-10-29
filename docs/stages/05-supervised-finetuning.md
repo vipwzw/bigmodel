@@ -86,4 +86,4 @@ LoRA 超参对比（30 步、每步 8 条样本、max_seq_len=384）：
 - **loss 不降/上升**：检查是否 bf16 权重 + AdamW；改用 fp32 主权重 + autocast，并降低学习率（5e-5 量级）。
 - **OOM**：减小 `max_seq_len`/`batch_size`，或提高 `grad_accum`。
 - **生成出现 `<think>`**：Qwen3 思考模式；可在推理时用模板参数关闭（Stage 8 文档会说明）。
-- **1.7B 暂无**：`models/Qwen3-1.7B` 需下载 ~3.4 GB；`configs/stage5.yaml` 的 `advance.enabled=true` 可跑进阶实验。
+- **1.7B 进阶**：`models/Qwen3-1.7B`（~3.8 GB）已支持下载与离线加载；`configs/stage5.yaml` 的 `advance.enabled=true` 可跑 1.7B 进阶微调实验（本课 sanity 档默认关闭以控制时间）。
