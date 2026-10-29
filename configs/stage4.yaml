@@ -1,0 +1,65 @@
+# Stage 4：从零预训练三档规模 + MLX 对照
+stage4:
+  # 三档模型规模与训练预算；sanity 预算按实测吞吐校准（见 docs/stages/01）
+  presets:
+    s:
+      preset: s
+      data_key: pretrain_zh_bpe16384
+      batch_size: 8
+      grad_accum: 1
+      lr: 0.0006
+      warmup_steps: 100
+      max_tokens:
+        sanity: 2000000
+        standard: 100000000
+      grad_checkpoint: false
+      checkpoint_every: 100
+      eval_every: 100
+      keep_last: 2
+    m:
+      preset: m
+      data_key: pretrain_zh_bpe32768
+      batch_size: 4
+      grad_accum: 2
+      lr: 0.0005
+      warmup_steps: 100
+      max_tokens:
+        sanity: 1000000
+        standard: 120000000
+      grad_checkpoint: true
+      checkpoint_every: 100
+      eval_every: 100
+      keep_last: 2
+    l:
+      preset: l
+      data_key: pretrain_zh_bpe32768
+      batch_size: 2
+      grad_accum: 4
+      lr: 0.0004
+      warmup_steps: 100
+      max_tokens:
+        sanity: 500000
+        standard: 80000000
+      grad_checkpoint: true
+      checkpoint_every: 100
+      eval_every: 100
+      keep_last: 2
+
+  scaling:
+    presets: [s, m, l]
+
+  # MLX 对照：同一权重下的数值一致性（小规模，fp32）
+  mlx_parity:
+    preset: s
+    batch_size: 2
+    seq_len: 128
+
+  # MLX 训练吞吐对照
+  mlx_throughput:
+    preset: s
+    batch_size: 4
+    seq_len: 256
+    steps: 5
+
+  # 课程文档用的对照基准（实测值会写入报告）
+  reference_gpu: "NVIDIA A100 80GB（仅对照，不在本机运行）"

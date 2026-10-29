@@ -1,0 +1,69 @@
+# Stage 5：Qwen3 小模型 LoRA 指令微调
+stage5:
+  base_model_key: qwen3_06b
+  advance_model_key: qwen3_17b
+  instruction_dir: data/processed/stage3/instruction/sft_zh
+  tokenizer_dir: models/Qwen3-0.6B
+
+  lora:
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+
+  train:
+    sanity:
+      max_samples: 400
+      val_samples: 40
+      max_steps: 30
+      batch_size: 2
+      grad_accum: 4
+      max_seq_len: 384
+      learning_rate: 0.0001
+      warmup_steps: 3
+      log_every: 5
+      eval_every: 15
+      eval_batches: 2
+      save_every: 15
+    standard:
+      max_samples: 20000
+      val_samples: 200
+      max_steps: 800
+      batch_size: 2
+      grad_accum: 8
+      max_seq_len: 1024
+      learning_rate: 0.0001
+      warmup_steps: 20
+      log_every: 10
+      eval_every: 100
+      eval_batches: 8
+      save_every: 200
+
+  # 超参对比：不同 LoRA rank（其余保持一致，便于归因）
+  compare:
+    - name: lora_r16
+      lora_r: 16
+      learning_rate: 0.0001
+      max_steps: 30
+    - name: lora_r8
+      lora_r: 8
+      learning_rate: 0.0001
+      max_steps: 30
+
+  generation:
+    prompts:
+      - 用一句话解释什么是大语言模型。
+      - 给初学者三条学习深度学习的建议。
+      - 请用中文写一句关于秋天的诗句。
+      - 解释一下 LoRA 微调的原理。
+      - 如果一个模型回答总是很啰嗦，你会怎么改进？
+    max_new_tokens: 60
+    temperature: 0.7
+    top_p: 0.9
+
+  export:
+    dir: models/exports/qwen3-0.6b-sft-lora-merged
+
+  advance:
+    enabled: false   # 1.7B 进阶实验（需先下载 3.6GB 模型）
+    max_steps: 20

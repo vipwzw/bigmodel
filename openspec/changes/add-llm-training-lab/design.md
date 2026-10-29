@@ -39,7 +39,7 @@
 
 ### D2 训练框架分工：自研轻量预训练循环 + HF 微调栈 + MLX 对照
 - **从零预训练**：自研训练循环（模型、数据加载、AMP、梯度累积、调度、检查点），约数百行，显式暴露机制；不经过 `transformers.Trainer`。
-- **SFT / DPO**：`transformers` + `peft` + `trl`（`SFTTrainer`/`DPOTrainer`），与主流微调栈一致。
+- **SFT / DPO**：`transformers` + `peft`（LoRA/QLoRA）+ 自研训练循环；TRL 作为生态参照，其 `SFTTrainer`/`DPOTrainer` 依赖训练兼容的 chat template 与 Trainer 设备抽象，在 MPS 上验证成本高，不作为硬依赖。
 - **MLX 对照**：用 `mlx` 重写同结构 tiny GPT 训练循环；用 `mlx-lm` 做 LoRA 与量化推理对照。
 - 备选：全部用 HF Trainer（MPS 行为不透明、掩盖机制）；nanoGPT（可经代理获取，但代码结构与课程目标不一致，仍不采用）；llama.cpp 训练（非训练导向，且本机无 cmake）。选择当前方案是为了同时满足"看见机制"与"贴近主流栈"。
 

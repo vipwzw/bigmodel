@@ -94,7 +94,7 @@ data:
       standard: 200000
     eval_docs: 200
   packing:
-    block_size: 512
+    block_size: 1024
     sanity_max_tokens:
       pretrain_zh: 4000000
       pretrain_en: 1000000
@@ -108,3 +108,23 @@ data:
   preference:
     max_pairs: 3000
     val_ratio: 0.05
+    qwen3_06b:
+      source: modelscope
+      repo_type: model
+      repo_id: Qwen/Qwen3-0.6B
+      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
+      text_field: null
+      language: zh
+      license: Apache-2.0（Qwen3-0.6B）
+      approx_size_gb: 1.6
+      dest: models/Qwen3-0.6B
+    qwen3_17b:
+      source: modelscope
+      repo_type: model
+      repo_id: Qwen/Qwen3-1.7B
+      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
+      text_field: null
+      language: zh
+      license: Apache-2.0（Qwen3-1.7B）
+      approx_size_gb: 3.8
+      dest: models/Qwen3-1.7B
