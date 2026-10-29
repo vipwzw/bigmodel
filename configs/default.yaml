@@ -1,0 +1,22 @@
+seed: 42
+
+# 运行档位：sanity 用于快速验证链路（每阶段默认 ≤10 分钟），standard 用于正式实验
+profile: standard
+max_minutes: null
+dry_run: false
+
+# 训练/评测阶段默认离线运行（只用本地缓存），避免隐式联网
+offline: false
+
+data_dir: data
+models_dir: models
+runs_dir: runs
+
+network:
+  # 来源优先级：本地缓存 → ModelScope 直连 → hf-mirror 直连 → 官方 HuggingFace（通常需要代理）
+  priority: [cache, modelscope, hf-mirror, hf]
+  hf_endpoint: https://hf-mirror.com
+  modelscope_endpoint: https://www.modelscope.cn
+  # 本地代理示例：http://127.0.0.1:1087（ShadowsocksX-NG privoxy）；null 表示直连
+  proxy: null
+  timeout_seconds: 8.0
