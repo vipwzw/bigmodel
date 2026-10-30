@@ -98,9 +98,11 @@ def _resolve_config(args: argparse.Namespace, stage_config: Path | None = None) 
         overrides["dry_run"] = True
     if getattr(args, "offline", False):
         overrides["offline"] = True
-    paths = [Path(item) for item in getattr(args, "config", [])]
+    # 加载顺序：默认配置 → 阶段默认配置 → 用户 --config（后者覆盖前者）
+    paths: list[Path] = []
     if stage_config is not None and stage_config.exists():
         paths.append(stage_config)
+    paths.extend(Path(item) for item in getattr(args, "config", []))
     return load_config(*paths, overrides=overrides, use_default=True)
 
 

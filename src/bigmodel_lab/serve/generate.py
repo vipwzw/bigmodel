@@ -13,6 +13,16 @@ from ..train.precision import default_device, driver_memory_gb
 DEFAULT_SYSTEM_PROMPT = "你是一个乐于助人的中文助手。"
 
 
+import re
+
+_THINK_RE = re.compile(r"^.*?</think>\s*", re.DOTALL)
+
+
+def strip_thinking(text: str) -> str:
+    """去掉 Qwen3 思考模式产生的 ...</think> 前缀（如果存在）。"""
+    return _THINK_RE.sub("", text).strip()
+
+
 @dataclass
 class SamplingParams:
     max_tokens: int = 64
@@ -43,7 +53,12 @@ class MLXGenerator:
         self.model, self.tokenizer = load(self.model_path)
 
     def _chat_prompt(self, messages: list[dict[str, str]]) -> str:
-        return self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        try:
+            return self.tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True, enable_thinking=False
+            )
+        except Exception:  # noqa: BLE001 - 其它模型的模板可能不认这个参数
+            return self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
     def stream(self, messages: list[dict[str, str]], params: SamplingParams) -> Iterator[str]:
         import importlib  # noqa: PLC0415
@@ -74,7 +89,7 @@ class MLXGenerator:
             token_count += len(chunk)
         elapsed = time.perf_counter() - started
         return {
-            "text": "".join(chunks),
+            "text": strip_thinking("".join(chunks)),
             "elapsed_seconds": round(elapsed, 3),
             "ttft_seconds": round((first_token_at - started) if first_token_at else elapsed, 3),
             "tokens_per_second": round(token_count / max(elapsed, 1e-9), 1),
@@ -98,7 +113,10 @@ class TransformersGenerator:
         from transformers import TextIteratorStreamer  # noqa: PLC0415
 
         params.validate()
-        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        try:
+            text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=False)
+        except Exception:  # noqa: BLE001
+            text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = self.tokenizer(text, return_tensors="pt", add_special_tokens=False).to(self.device)
         streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True)
         generation_kwargs = dict(
@@ -124,7 +142,7 @@ class TransformersGenerator:
         started = time.perf_counter()
         chunks = list(self.stream(messages, params))
         elapsed = time.perf_counter() - started
-        text = "".join(chunks)
+        text = strip_thinking("".join(chunks))
         return {
             "text": text,
             "elapsed_seconds": round(elapsed, 3),

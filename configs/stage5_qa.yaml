@@ -1,0 +1,30 @@
+# Q&A 实验：在 Stage 5 基础上做一次更认真的指令微调（400 步 / 8000 样本）
+stage5:
+  compare:
+    - name: qa_r16
+      lora_r: 16
+      learning_rate: 0.0001
+      max_steps: 400
+  train:
+    sanity:
+      max_samples: 8000
+      val_samples: 200
+      batch_size: 2
+      grad_accum: 4
+      max_seq_len: 512
+      learning_rate: 0.0001
+      warmup_steps: 20
+      log_every: 20
+      eval_every: 100
+      eval_batches: 4
+      save_every: 200
+  generation:
+    prompts:
+      - 用一句话解释什么是大语言模型。
+      - 给初学者三条学习深度学习的建议。
+      - 请用中文写一句关于秋天的诗句。
+      - 解释一下 LoRA 微调的原理。
+      - 如果一个模型回答总是很啰嗦，你会怎么改进？
+    max_new_tokens: 80
+    temperature: 0.7
+    top_p: 0.9

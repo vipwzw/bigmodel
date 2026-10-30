@@ -39,10 +39,15 @@ uv sync --all-groups          # 已含 torch / transformers / peft / mlx / mlx-l
 | 7 | 评测与追踪 | 困惑度、选择题、指令遵循规则评测、跨实验对比、可复现 | [07-evaluation.md](stages/07-evaluation.md) | ~30 s |
 | 8 | 量化推理与服务 | MLX 4bit/8bit 量化、吞吐/TTFT/显存基准、CLI 生成、OpenAI 兼容服务 | [08-inference-serving.md](stages/08-inference-serving.md) | ~3 min |
 
-## 理论册与总复盘
+## 理论册、实验与总复盘
 
+- [QA_EXPERIMENT.md](QA_EXPERIMENT.md)：**训练一个语言模型并提问**——SFT 训练过程、真实问答记录、能力评估与原理分析。
 - [PRINCIPLES.md](PRINCIPLES.md)：**原理与实测**——每个阶段背后的机器学习机制、公式推导，以及用本仓库真实数据做的验证。
 - [CAPSTONE.md](CAPSTONE.md)：实测数据汇总、工程踩坑、本机限制与迁移生产环境的路径。
+
+## 专题深入
+
+- [deep-dives/byte-level-bpe.md](deep-dives/byte-level-bpe.md)：byte-level BPE 算法详解——UTF-8 字节与 `bytes_to_unicode`、预分词、训练/编码伪代码、12 轮手算示例、本仓库 16k/32k 词表实测与 UNK 陷阱、从零实现（与 `tokenizers` 逐 token 对拍）、6 张示意图，以及 256 项 `bytes_to_unicode` 完整映射表（[CSV](deep-dives/bytes_to_unicode.csv)）。
 
 ## 技术栈
 
@@ -74,6 +79,7 @@ uv sync --all-groups          # 已含 torch / transformers / peft / mlx / mlx-l
 configs/              数据源、各阶段参数
 src/bigmodel_lab/     CLI、基座、data/train/finetune/evaluation/serve、8 个阶段模块
 docs/stages/          8 篇课程文档
+docs/deep-dives/      专题深入（byte-level BPE 算法详解 + 插图）
 data/                 原始/处理数据、评测基准（不入库）
 models/               下载的模型与导出模型（不入库）
 runs/                 每次实验的完整产物（不入库）
