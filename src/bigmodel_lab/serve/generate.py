@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass, field
@@ -11,9 +12,6 @@ from typing import Any
 from ..train.precision import default_device, driver_memory_gb
 
 DEFAULT_SYSTEM_PROMPT = "你是一个乐于助人的中文助手。"
-
-
-import re
 
 _THINK_RE = re.compile(r"^.*?</think>\s*", re.DOTALL)
 

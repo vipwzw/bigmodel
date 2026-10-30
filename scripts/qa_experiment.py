@@ -16,7 +16,7 @@ from typing import Any
 import torch
 
 from bigmodel_lab.data.tokenizer import load_tokenizer
-from bigmodel_lab.models.gpt import PRESETS, GPT
+from bigmodel_lab.models.gpt import GPT, PRESETS
 from bigmodel_lab.train.precision import autocast_context, default_device, detect_autocast_dtype, sync
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -141,7 +141,7 @@ def load_tiny_sft(path: Path, device: str | None = None) -> GPT:
 
 # ---------- Qwen3 问答 ----------
 def qwen_ask(questions: list[str], *, model_dir: str, max_new_tokens: int = 96, temperature: float = 0.3) -> list[dict[str, Any]]:
-    from bigmodel_lab.serve.generate import MLXGenerator, SamplingParams, DEFAULT_SYSTEM_PROMPT  # noqa: PLC0415
+    from bigmodel_lab.serve.generate import DEFAULT_SYSTEM_PROMPT, MLXGenerator, SamplingParams  # noqa: PLC0415
 
     generator = MLXGenerator(model_dir)
     results = []

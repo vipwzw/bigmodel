@@ -113,8 +113,8 @@ def run_qwen(model_dir: str) -> dict:
 
 
 def run_tiny(base_checkpoint: str | None, sft_checkpoint: str | None, out: dict) -> dict:
-    from scripts.qa_experiment import load_tiny_model, load_tiny_sft, QWEN_QUESTIONS, _tokenizer, tiny_ask  # noqa: PLC0415
     from bigmodel_lab.train.precision import default_device  # noqa: PLC0415
+    from scripts.qa_experiment import QWEN_QUESTIONS, _tokenizer, load_tiny_model, load_tiny_sft, tiny_ask  # noqa: PLC0415
 
     device = default_device()
     tokenizer = _tokenizer()
