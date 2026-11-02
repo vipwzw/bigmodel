@@ -47,7 +47,7 @@ uv sync --all-groups          # 已含 torch / transformers / peft / mlx / mlx-l
 
 ## 专题深入
 
-- [GPU.md](GPU.md)：**CUDA 单卡（V100 16GB / A10 24GB）运行指南**——双卡自动精度探测（A10 bf16 / V100 fp16+GradScaler）、环境安装、完整命令与 V100 实测数据；真实问答记录见 [GPU_QA.md](GPU_QA.md)。
+- [GPU.md](GPU.md)：**CUDA 单卡（V100 16GB / A10 24GB）运行指南**——双卡自动精度探测（A10 bf16 / V100 fp16+GradScaler）、环境安装、完整命令与 **V100 + A10 双卡实测数据**；真实问答记录见 [GPU_QA.md](GPU_QA.md)。
 
 - [deep-dives/byte-level-bpe.md](deep-dives/byte-level-bpe.md)：byte-level BPE 算法详解——UTF-8 字节与 `bytes_to_unicode`、预分词、训练/编码伪代码、12 轮手算示例、本仓库 16k/32k 词表实测与 UNK 陷阱、从零实现（与 `tokenizers` 逐 token 对拍）、6 张示意图，以及 256 项 `bytes_to_unicode` 完整映射表（[CSV](deep-dives/bytes_to_unicode.csv)）。
 

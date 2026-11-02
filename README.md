@@ -26,7 +26,7 @@ bash scripts/setup_cuda.sh            # 建 venv；已预装 CUDA torch 的镜�
 python scripts/qa_cuda.py --model-path models/exports/qwen3-0.6b-v100-sft-merged
 ```
 
-A10 机器把 `cuda-v100.yaml` 换成 `configs/cuda-a10.yaml` 即可；也可一键跑完整流程：`bash scripts/run_cuda_pipeline.sh`（`QUICK=1` 冒烟档）。详见 [docs/GPU.md](docs/GPU.md) 与 [docs/GPU_QA.md](docs/GPU_QA.md)。
+A10 机器把 `cuda-v100.yaml` 换成 `configs/cuda-a10.yaml` 即可（V100/A10 均已实机验证）；也可一键跑完整流程：`bash scripts/run_cuda_pipeline.sh`（`QUICK=1` 冒烟档）。详见 [docs/GPU.md](docs/GPU.md) 与 [docs/GPU_QA.md](docs/GPU_QA.md)。
 
 ## 目录结构
 

@@ -4,8 +4,8 @@
 > 「下载数据 → 清洗/去重 → 分词/打包/指令数据 → LoRA SFT → 测试问答」，
 > 同时兼容 **Tesla V100 16GB（sm70）** 与 **NVIDIA A10 24GB（sm86）**。
 >
-> 本机实测环境：阿里云 PAI-DSW，Ubuntu 22.04，驱动 550.163.01，CUDA Toolkit 12.4，
-> 系统 Python 3.11，镜像预装 `torch 2.8.0+cu128`（arch_list 含 sm_70 与 sm_86）。
+> 已在阿里云 PAI-DSW 的 **V100 与 A10 两台实例**上分别实测（Ubuntu 22.04，驱动 550.163.01，
+> CUDA Toolkit 12.4，系统 Python 3.11，镜像预装 `torch 2.8.0+cu128`）。
 
 ## 一、双卡支持设计
 
@@ -95,7 +95,7 @@ python scripts/qa_cuda.py --model-path models/exports/qwen3-0.6b-v100-sft-merged
 
 > 附：需要更细粒度的 GPU 微基准（fp32/TF32/fp16/bf16 矩阵、显存带宽、频率/功耗、A10 参考峰值）时，可运行 `python scripts/bench_gpu.py`（支持 cuda/mps/cpu，不依赖本项目代码）。
 
-## 四、V100 实测结果
+## 四、实测结果（V100 16GB 与 A10 24GB）
 
 > 运行时间：2026-11-02；机器：阿里云 PAI-DSW，Tesla V100-SXM2-16GB（ECC 开启，8 vCPU / 31GB RAM）。
 > 环境：Ubuntu 22.04、驱动 550.163.01、CUDA Toolkit 12.4、系统 Python 3.11.11、
@@ -168,14 +168,28 @@ tiny GPT 训练吞吐：S 36,767 tok/s（2×512）、M 38,062（2×768）、L 17
 > 批量生成把聚合吞吐从 26 提升到 87 tokens/s。该数字只反映「本机 + 本测试集」，不代表 A10/V100 硬件上限；
 > 换机器请以 `lab run 1` 与 Stage 5 的 tokens/s 为准。
 
-### 4.6 A10 说明（未实机验证的部分）
+### 4.6 A10 实测结果（同一套代码，自动切到 bf16 路径）
 
-本次只在 V100 上实测。A10 走**同一套自动探测路径**（原生 bf16 → bf16 autocast，不启用 GradScaler），
-代码与配置已就绪，但未在 A10 实机跑过；在 A10 上首次运行后请以以下三处为准核对：
+A10 上运行 `bash scripts/run_cuda_pipeline.sh`（自动识别 A10 → `configs/cuda-a10.yaml`），
+**无需改一行代码**；全流程（doctor→Stage1→2→3→5→QA，数据/模型已缓存）**约 9 分钟**。
 
-1. `lab doctor` 的 `cuda` 行应显示 `sm86 ... bf16=支持`；
-2. Stage 5 的 `sft_summary_*.json` 中 `autocast` 应为 `bfloat16`、`grad_scaler` 为 `false`；
-3. `stage5` 日志中 tokens/s 与 V100 的 ~975 tokens/s 对比（A10 预期更高）。
+| 项目 | A10 实测（对照 V100） |
+|---|---|
+| `lab doctor` cuda | `NVIDIA A10（22 GB，sm86，CUDA 12.8，bf16=支持）` |
+| 矩阵 GFLOPS | fp32 **18,645** / fp16 **84,505** / bf16 **88,156**（原生，无模拟标注） |
+| tiny GPT 训练 | bf16：S **55,125** / M **49,138** / L **19,390** tok/s（V100 为 36,767 / 38,062 / 17,680） |
+| SFT 配置 | 400 步，seq 1024，batch 2 × grad_accum 4；train 4,750 / val 200 |
+| 精度路径 | **`autocast=bfloat16`、`grad_scaler=false`**（与设计一致） |
+| val loss | 2.6456 → 2.0034（100 步）→ 1.9780（200）→ 1.9657（300）→ **1.9598（400 步）** |
+| 吞吐 / 时长 | **1,677.3 tokens/s** / 294.4 s（4.9 min）—— 约为 V100 的 **1.72 倍** |
+| 显存 | torch 分配峰值 **10.5 GB**（seq 1024 比 V100 更长，故高于 V100 的 7.9 GB） |
+| 测试问答（10 问） | 批量生成 **127.9 tokens/s**（V100 为 87.2）、总 14.8 s、0 空回答、客观题 4/4 正确 |
+| 导出 | `models/exports/qwen3-0.6b-a10-sft-merged`，可加载生成 ✅ |
+
+> 结论：同一份代码在 V100（fp16 + GradScaler）与 A10（bf16）上均按自动探测结果运行，
+> A10 的 bf16 路径吞吐与生成速度均优于 V100，符合硬件预期。
+> A10 问答全文见 [GPU_QA.md](GPU_QA.md) 第五节（多轮对话中出现了"40 个 CUDA 核心 / 16GB GDDR6"这类幻觉，
+> 属 600 步级 SFT 的知识上限，非框架问题）。
 
 ## 五、与 Apple Silicon 版本的差异
 
