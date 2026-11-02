@@ -1,0 +1,69 @@
+# A10 24GB：Qwen3-4B bf16 LoRA + gradient checkpointing（预计峰值 10–14GB）
+#
+# 用法：
+#   .venv/bin/lab run 5 --config configs/cuda-a10-4b.yaml --profile standard
+#   python scripts/qa_cuda.py --model-path models/exports/qwen3-4b-a10-sft-merged
+#
+# 说明：60 步是「显存/可行性验证档」，不是质量档；要效果就把 max_steps 调大（每步约 8×512 token）。
+data:
+  resources:
+    qwen3_4b:
+      source: modelscope
+      repo_type: model
+      repo_id: Qwen/Qwen3-4B
+      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
+      text_field: null
+      language: zh
+      license: Apache-2.0（Qwen3-4B）
+      approx_size_gb: 8.0
+      dest: models/Qwen3-4B
+
+stage5:
+  base_model_key: qwen3_4b
+  advance_model_key: qwen3_17b
+  instruction_dir: data/processed/stage3/instruction/sft_zh
+  tokenizer_dir: models/Qwen3-4B
+
+  lora:
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+
+  train:
+    standard:
+      max_samples: 4000
+      val_samples: 200
+      max_steps: 60
+      batch_size: 1
+      grad_accum: 8
+      max_seq_len: 512
+      learning_rate: 0.0001
+      warmup_steps: 10
+      log_every: 10
+      eval_every: 30
+      eval_batches: 2
+      save_every: 0
+      base_dtype: bfloat16
+      gradient_checkpointing: true
+      attn_implementation: flash_attention_2
+
+  compare:
+    - name: a10_4b_r16
+      lora_r: 16
+      learning_rate: 0.0001
+      max_steps: 60
+
+  generation:
+    prompts:
+      - 你好，你是谁？
+      - 1+1等于几？
+      - 中国的首都是哪座城市？
+      - 用一句话解释什么是大语言模型。
+      - 太阳系中体积最大的行星是哪个？
+    max_new_tokens: 60
+    temperature: 0.7
+    top_p: 0.9
+
+  export:
+    dir: models/exports/qwen3-4b-a10-sft-merged

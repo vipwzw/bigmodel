@@ -1,0 +1,38 @@
+# A10 24GB（bf16）省内存回归档：Qwen3-0.6B + bf16 载入 + gradient checkpointing
+#
+# 目的：量化「省内存开关」的效果（对照：fp32 载入、无 checkpointing 时 400 步峰值 10.5GB）
+#
+# 用法：
+#   .venv/bin/lab run 5 --config configs/cuda.yaml --config configs/cuda-a10-0.6b-mem.yaml --profile standard
+#
+# 预期：峰值显存约 5–7GB（bf16 权重减半 + 激活重算），可把 bs/seq 继续调大。
+stage5:
+  base_model_key: qwen3_06b
+  instruction_dir: data/processed/stage3/instruction/sft_zh
+
+  train:
+    standard:
+      max_samples: 4700
+      val_samples: 200
+      max_steps: 60
+      batch_size: 2
+      grad_accum: 4
+      max_seq_len: 1024
+      learning_rate: 0.0001
+      warmup_steps: 20
+      log_every: 20
+      eval_every: 100
+      eval_batches: 4
+      save_every: 0
+      base_dtype: bfloat16
+      gradient_checkpointing: true
+      attn_implementation: sdpa
+
+  compare:
+    - name: a10_06b_bf16_ckpt
+      lora_r: 16
+      learning_rate: 0.0001
+      max_steps: 60
+
+  export:
+    dir: models/exports/qwen3-0.6b-a10-bf16-merged

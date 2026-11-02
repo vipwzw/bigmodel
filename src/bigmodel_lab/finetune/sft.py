@@ -1,7 +1,15 @@
-"""SFT 微调：Qwen3 小模型 + LoRA，含掩码自检、检查点续训、生成对比与合并导出。"""
+"""SFT 微调：Qwen3 小模型 + LoRA/QLoRA，含掩码自检、检查点续训、生成对比与合并导出。
+
+省内存开关（见 SFTConfig）：
+- ``dtype="bfloat16"``：基座以 bf16 载入（相对 fp32 权重减半）；
+- ``quantization="4bit"``：QLoRA（NF4 + double quant），权重再减约 75%；
+- ``gradient_checkpointing=True``：激活重算，激活显存约减半；
+- ``attn_implementation="flash_attention_2"``：安装 flash-attn 后进一步降激活并提速（缺依赖自动回落 sdpa）。
+"""
 
 from __future__ import annotations
 
+import importlib
 import logging
 import math
 import time
@@ -20,6 +28,7 @@ from ..train.precision import (
     default_device,
     default_dtype_name,
     detect_autocast_dtype,
+    device_type,
     empty_cache,
     make_grad_scaler,
     peak_memory_gb,
@@ -65,13 +74,64 @@ class SFTConfig:
     device: str = field(default_factory=default_device)
     profile: str = "sanity"
     resume_from: str | None = None
-    dtype: str = "float32"
+    # 基座载入 dtype；None 表示沿用旧行为（fp32 主权重 + autocast）
+    dtype: str | None = None
+    quantization: str | None = None  # "4bit"（QLoRA）/ "8bit" / None
+    gradient_checkpointing: bool = False
+    attn_implementation: str | None = None  # "sdpa" / "flash_attention_2"
     autocast: bool = True
     max_samples: int | None = None
+
+    def base_dtype_name(self) -> str:
+        return self.dtype or "float32"
 
 
 def _torch_dtype(name: str) -> torch.dtype:
     return {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}[name]
+
+
+def _from_pretrained_with_dtype(loader, model_dir: Path, kwargs: dict[str, Any], dtype_name: str | None):
+    """兼容 transformers 新旧参数名：新版本用 `dtype=`，旧版本用 `torch_dtype=`。"""
+    if dtype_name is None:
+        return loader.from_pretrained(str(model_dir), **kwargs)
+    dtype = _torch_dtype(dtype_name)
+    try:
+        return loader.from_pretrained(str(model_dir), dtype=dtype, **kwargs)
+    except TypeError:  # transformers < 4.56 只接受 torch_dtype
+        return loader.from_pretrained(str(model_dir), torch_dtype=dtype, **kwargs)
+
+
+def _resolve_attn_implementation(name: str | None) -> str | None:
+    """请求 flash_attention_2 但未安装 flash-attn 时自动回退 sdpa，避免阶段直接失败。"""
+    if not name:
+        return None
+    if name == "flash_attention_2" and importlib.util.find_spec("flash_attn") is None:
+        logger.warning("未安装 flash-attn，attn_implementation 自动回退为 sdpa")
+        return "sdpa"
+    return name
+
+
+def _bnb_quantization_config(quantization: str, dtype_name: str):
+    """构造 bitsandbytes 量化配置（QLoRA：NF4 + double quant + bf16/fp16 compute）。"""
+    if quantization not in {"4bit", "8bit"}:
+        raise ValueError(f"不支持的量化方式: {quantization!r}（可选 4bit / 8bit / None）")
+    try:
+        import bitsandbytes  # noqa: F401, PLC0415 - 仅做可用性检查
+        from transformers import BitsAndBytesConfig  # noqa: PLC0415
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            "量化载入需要 bitsandbytes 与 transformers>=4.30：pip install bitsandbytes；"
+            f"当前导入失败：{type(exc).__name__}: {exc}"
+        ) from exc
+    compute_dtype = _torch_dtype(dtype_name) if dtype_name in {"bfloat16", "float16"} else torch.bfloat16
+    if quantization == "4bit":
+        return BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=compute_dtype,
+        )
+    return BitsAndBytesConfig(load_in_8bit=True)
 
 
 def load_model_and_tokenizer(
@@ -79,6 +139,8 @@ def load_model_and_tokenizer(
     *,
     device: str,
     dtype_name: str | None = None,
+    quantization: str | None = None,
+    attn_implementation: str | None = None,
 ):
     from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: PLC0415
 
@@ -91,14 +153,23 @@ def load_model_and_tokenizer(
     tokenizer = AutoTokenizer.from_pretrained(str(model_dir), local_files_only=True, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(
-        str(model_dir),
-        local_files_only=True,
-        trust_remote_code=True,
-        torch_dtype=_torch_dtype(dtype_name),
-    )
+    model_kwargs: dict[str, Any] = {"local_files_only": True, "trust_remote_code": True}
+    resolved_attn = _resolve_attn_implementation(attn_implementation)
+    if resolved_attn:
+        model_kwargs["attn_implementation"] = resolved_attn
+    if quantization:
+        if device_type(device) != "cuda":
+            raise RuntimeError(
+                f"量化载入只支持 CUDA 设备，当前设备: {device}；"
+                "无 CUDA 时请省略 quantization 或使用 dtype=bfloat16"
+            )
+        model_kwargs["quantization_config"] = _bnb_quantization_config(quantization, dtype_name)
+        model_kwargs["device_map"] = {"": str(device)}
+        model = _from_pretrained_with_dtype(AutoModelForCausalLM, model_dir, model_kwargs, None)
+    else:
+        model = _from_pretrained_with_dtype(AutoModelForCausalLM, model_dir, model_kwargs, dtype_name)
+        model.to(device)
     model.config.use_cache = False
-    model.to(device)
     return model, tokenizer
 
 
@@ -137,8 +208,8 @@ def probe_qlora() -> dict[str, Any]:
         return {
             "available": False,
             "reason": f"未安装 bitsandbytes（{type(exc).__name__}: {exc}）",
-            "fallback": "主路径使用 bf16/fp16 混合精度 LoRA；单卡 16–48GB 显存/统一内存内"
-                        "无需 4bit 量化即可训练（Qwen3-0.6B LoRA 在 V100 16GB 上以 fp16 AMP 可跑）",
+            "fallback": "主路径使用 bf16/fp16 混合精度 LoRA；显存不足时先启用 gradient_checkpointing + bf16 载入，"
+                        "仍不够再安装 bitsandbytes 走 4bit QLoRA（仅 CUDA）",
         }
 
 
@@ -217,11 +288,39 @@ class SFTTrainer:
     def _prepare(self) -> tuple[DataLoader, DataLoader]:
         if self.model is None or self.tokenizer is None:
             base_model, tokenizer = load_model_and_tokenizer(
-                self.config.model_dir, device=self.device, dtype_name=self.config.dtype
+                self.config.model_dir,
+                device=self.device,
+                dtype_name=self.config.dtype,
+                quantization=self.config.quantization,
+                attn_implementation=self.config.attn_implementation,
             )
             self.model = base_model
             self.tokenizer = tokenizer
-        self.model = apply_lora(self.model, self.config.lora).to(self.device)
+        if self.config.quantization:
+            # QLoRA：把 bnb 量化模型转成可训练（冻结基座、cast 非量化层、开启输入梯度）
+            from peft import prepare_model_for_kbit_training  # noqa: PLC0415
+
+            self.model = prepare_model_for_kbit_training(self.model, use_gradient_checkpointing=False)
+        peft_model = apply_lora(self.model, self.config.lora)
+        # 量化模型用 device_map 载入，不能再 .to()，否则 transformers 会报错
+        self.model = peft_model if self.config.quantization else peft_model.to(self.device)
+        if self.config.gradient_checkpointing:
+            enable_gc = getattr(self.model, "gradient_checkpointing_enable", None)
+            if enable_gc is not None:
+                try:
+                    enable_gc(gradient_checkpointing_kwargs={"use_reentrant": False})
+                except TypeError:  # 老版本 peft/transformers 不接受 kwargs
+                    enable_gc()
+                enable_input_grads = getattr(self.model, "enable_input_require_grads", None)
+                if enable_input_grads is not None:
+                    enable_input_grads()
+                logger.info("已启用 gradient checkpointing（激活重算）")
+        logger.info(
+            "模型载入配置: dtype=%s, quantization=%s, attn=%s",
+            self.config.base_dtype_name(),
+            self.config.quantization or "none",
+            self.config.attn_implementation or "auto",
+        )
         train_loader, self.train_dataset = _build_loader(self.train_records, self.tokenizer, config=self.config, shuffle=True)
         val_loader, self.val_dataset = _build_loader(self.val_records, self.tokenizer, config=self.config, shuffle=False)
         return train_loader, val_loader
@@ -251,7 +350,7 @@ class SFTTrainer:
         if not path.exists():
             raise FileNotFoundError(f"续训目录不存在: {path}")
         peft_model = PeftModel.from_pretrained(self.model.get_base_model(), str(path))
-        self.model = peft_model.to(self.device)
+        self.model = peft_model if self.config.quantization else peft_model.to(self.device)
         state = torch.load(path / "trainer_state.pt", map_location="cpu", weights_only=False)
         optimizer.load_state_dict(state["optimizer"])
         scheduler.load_state_dict(state["scheduler"])
@@ -406,6 +505,10 @@ class SFTTrainer:
             "device": self.device,
             "autocast": self.autocast_name,
             "grad_scaler": self.scaler is not None,
+            "base_dtype": self.config.base_dtype_name(),
+            "quantization": self.config.quantization or "none",
+            "gradient_checkpointing": self.config.gradient_checkpointing,
+            "attn_implementation": self.config.attn_implementation or "auto",
             **report,
             "adapter": str(adapter_dir),
             "metrics": self.metrics,

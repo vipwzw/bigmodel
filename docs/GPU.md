@@ -191,7 +191,68 @@ A10 上运行 `bash scripts/run_cuda_pipeline.sh`（自动识别 A10 → `config
 > A10 问答全文见 [GPU_QA.md](GPU_QA.md) 第五节（多轮对话中出现了"40 个 CUDA 核心 / 16GB GDDR6"这类幻觉，
 > 属 600 步级 SFT 的知识上限，非框架问题）。
 
-## 五、与 Apple Silicon 版本的差异
+## 五、省内存方案与更大模型（A10 24GB 实测）
+
+A10 24GB 上能调多大的 Qwen，取决于「权重 + 激活 + 优化器」三层压缩。仓库已内置 4 个开关（无需改代码，配置即用）：
+
+| 开关（YAML 键） | 作用 | 收益 | 代价 |
+|---|---|---|---|
+| `base_dtype: bfloat16` | 基座以 bf16 载入（原默认 fp32） | 权重显存 **-50%** | 无 |
+| `gradient_checkpointing: true` | 激活重算 | 激活显存 **-50~70%** | 吞吐约 -45% |
+| `quantization: 4bit` | QLoRA（NF4 + double quant，需 bitsandbytes） | 权重再 **-75%** | 略降质量；仅 CUDA |
+| `attn_implementation: flash_attention_2` | FlashAttention-2（需 flash-attn） | 长序列激活更低、更快 | 编译安装较重；缺依赖自动回落 sdpa |
+| `batch_size / max_seq_len / grad_accum` | 显存随 micro-batch 与序列线性变化 | 按需调节 | 训练变慢 |
+
+### 5.1 A10 实测（同一套流水线，配置不同）
+
+| 档位 | 配置 | 峰值显存 | 吞吐 | 训练结果 |
+|---|---|---|---|---|
+| Qwen3-0.6B（旧默认） | fp32 载入、无 checkpointing、bs2×ga4×seq1024 | **10.5 GB** | 1,677 tok/s | 400 步，val 2.6456→1.9598 |
+| Qwen3-0.6B（省内存） | bf16 + checkpointing + sdpa，同 batch | **3.65 GB（-65%）** | 930 tok/s | 60 步，val 2.6482→2.0427 |
+| **Qwen3-4B** | bf16 + checkpointing + FA2，bs1×ga8×seq512 | **9.16 GB** | 353 tok/s | 60 步，val 3.0803→1.5571（可训练 33.0M，0.81%） |
+| **Qwen3-14B（QLoRA）** | bf16 载入 + **4bit** + checkpointing + FA2，bs1×ga8×seq512 | **15.9 GB** | 140 tok/s | 20 步，val 2.0746→1.3019（可训练 64.2M，0.78%） |
+
+> 0.6B 省内存档把峰值从 10.5GB 压到 3.65GB（同样的 batch/seq），代价是吞吐从 1,677 降到 930 tok/s；
+> 4B 与 14B 都在 24GB 内真实完成训练并导出 adapter，说明这套开关在 A10 上可用。
+>
+> 推理侧实测（10 条固定问题，批量生成）：0.6B **127.9** tokens/s；4B（bf16）**122.1** tokens/s、总 92.9s；
+> 14B（4bit）**20.5** tokens/s、总 130.1s（反量化开销，比 4B 慢约 6 倍）。问答全文见
+> [GPU_QA.md](GPU_QA.md) 第五~七节。
+
+### 5.2 容量上限（A10 24GB，按实测外推）
+
+| 方式 | 推荐 | 极限 | 说明 |
+|---|---|---|---|
+| bf16 LoRA | **Qwen3-4B**（实测 9.2GB） | Qwen3-8B（约 18–20GB，需 checkpointing + bs1） | 14B bf16 权重就 28GB，放不下 |
+| **QLoRA 4bit** | **Qwen3-14B**（实测 15.9GB） | Qwen3-32B（约 22–24GB，seq 512/bs1） | 量化基座不能合并导出，推理用基座+adapter |
+| 全参微调 | Qwen3-0.6B | Qwen3-1.7B（需 8bit Adam + checkpointing，边缘） | 优化器状态是大头 |
+
+### 5.3 用法
+
+```bash
+# 0.6B 省内存回归（bf16 + checkpointing）
+.venv/bin/lab run 5 --config configs/cuda.yaml --config configs/cuda-a10-0.6b-mem.yaml --profile standard
+
+# 4B bf16 LoRA（自动下载模型；约 10 分钟/60 步）
+.venv/bin/lab run 5 --config configs/cuda-a10-4b.yaml --profile standard
+python scripts/qa_cuda.py --model-path models/exports/qwen3-4b-a10-sft-merged --out-dir runs/qa-cuda/4b
+
+# 14B 4bit QLoRA（需 bitsandbytes；量化基座不合并，adapter 单独推理）
+.venv/bin/lab run 5 --config configs/cuda-a10-14b-qlora.yaml --profile standard
+python scripts/qa_cuda.py --model-path models/Qwen3-14B --quantization 4bit \
+    --adapter runs/stage-5/<run>/artifacts/adapter_a10_14b_qlora --out-dir runs/qa-cuda/14b
+```
+
+### 5.4 踩坑与限制
+
+- **24GB 上 14B QLoRA 不要同时加载两份模型**：stage5 的「基座 vs 微调生成对比」会依次加载两个 14B 4bit（约 20GB），
+  第二个加载时 OOM。14B 配置已设 `generation.enabled: false`，训练后用 `qa_cuda.py` 单模型验证。
+- **量化基座不合并导出**：stage5 会跳过 merge，只保留 adapter；推理用 `qa_cuda.py --quantization 4bit --adapter <dir>`。
+- **checkpointing 是拿速度换显存**：0.6B 上吞吐 -45%；显存宽松时可关掉。
+- **flash-attn 安装**：本机实测 `flash-attn 2.7.4.post1` 可在 A10 + torch 2.8/cu128 编译成功；未安装时程序自动回落 `sdpa`。
+- **量化仅 CUDA**：MPS/CPU 上 `quantization` 会直接报错并提示改用 bf16 载入（Mac 48GB 统一内存也不需要量化）。
+
+## 六、与 Apple Silicon 版本的差异
 
 | 项目 | Apple Silicon（MPS/MLX） | CUDA 单卡（V100/A10） |
 |---|---|---|
@@ -200,7 +261,7 @@ A10 上运行 `bash scripts/run_cuda_pipeline.sh`（自动识别 A10 → `config
 | Stage 4/6/7/8 | 完整（含 MLX 量化） | 本次范围外：Stage 4/6/7 使用同一训练/评测代码可跑，Stage 8 的 MLX 量化在 Linux 不可用 |
 | 显存统计 | `driver_allocated_memory` | `torch.cuda.memory_allocated / max_memory_allocated` |
 
-## 六、常见问题
+## 七、常见问题
 
 - **`uv python install 3.12` 卡住**：python-build-standalone 走 GitHub，大陆机器常超时；
   `scripts/setup_cuda.sh` 已改为直接用系统 Python（≥3.11），不依赖该下载。

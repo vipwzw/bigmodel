@@ -53,6 +53,8 @@ def _markdown(payload: dict) -> str:
         "# CUDA 单卡测试数据：样例问答记录",
         "",
         f"- 模型：`{payload['model']}`",
+        f"- 量化：{payload.get('quantization') or 'none'}"
+        + (f"，adapter：`{payload['adapter']}`" if payload.get("adapter") else ""),
         f"- 设备：{payload['device']}（{payload['device_name']}）",
         f"- 生成时间：{payload['generated_at']}",
         f"- 采样参数：max_new_tokens={payload['params']['max_tokens']}，"
@@ -147,6 +149,17 @@ def main() -> int:
     parser.add_argument("--temperature", type=float, default=0.3)
     parser.add_argument("--top-p", type=float, default=0.9)
     parser.add_argument("--out-dir", default=None, help="输出目录，默认 runs/qa-cuda/<时间戳>")
+    parser.add_argument(
+        "--quantization",
+        choices=["4bit", "8bit"],
+        default=None,
+        help="基座按 4bit/8bit 量化载入（QLoRA 训练后的推理；需要 CUDA + bitsandbytes）",
+    )
+    parser.add_argument(
+        "--adapter",
+        default=None,
+        help="LoRA adapter 目录（量化训练跳过合并导出时使用：--model-path 基座 + --quantization 4bit + --adapter <dir>）",
+    )
     args = parser.parse_args()
 
     model_path = Path(args.model_path)
@@ -156,6 +169,10 @@ def main() -> int:
             "请先运行：.venv/bin/lab run 5 --config configs/cuda.yaml --config configs/cuda-v100.yaml --profile standard",
             file=sys.stderr,
         )
+        return 2
+    adapter_path = Path(args.adapter) if args.adapter else None
+    if adapter_path is not None and not (adapter_path / "adapter_config.json").exists():
+        print(f"adapter 目录不存在或缺少 adapter_config.json: {adapter_path}", file=sys.stderr)
         return 2
 
     from bigmodel_lab.serve.generate import (  # noqa: PLC0415
@@ -167,10 +184,14 @@ def main() -> int:
     from bigmodel_lab.train.precision import device_report  # noqa: PLC0415
 
     started = time.time()
-    generator = TransformersGenerator(model_path, device=args.device)
+    generator = TransformersGenerator(
+        model_path, device=args.device, quantization=args.quantization, adapter_path=adapter_path
+    )
     params = SamplingParams(max_tokens=args.max_new_tokens, temperature=args.temperature, top_p=args.top_p)
     report = device_report(generator.device)
-    print(f"[qa] 模型 {model_path} / 设备 {generator.device} ({report.get('name')})")
+    mode_text = f"量化={args.quantization}" if args.quantization else "量化=无"
+    adapter_text = f"，adapter={adapter_path}" if adapter_path else ""
+    print(f"[qa] 模型 {model_path} / {mode_text}{adapter_text} / 设备 {generator.device} ({report.get('name')})")
 
     single: list[dict] = []
     mode = "batched"
@@ -220,6 +241,8 @@ def main() -> int:
     avg_tps = round(sum(item["tokens_per_second"] for item in single) / max(len(single), 1), 1)
     payload = {
         "model": str(model_path),
+        "adapter": str(adapter_path) if adapter_path else None,
+        "quantization": args.quantization,
         "device": generator.device,
         "device_name": report.get("name"),
         "generated_at": datetime.now().isoformat(timespec="seconds"),

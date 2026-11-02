@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gc
 import json
 import logging
 from pathlib import Path
@@ -62,7 +63,14 @@ def _lora_spec(stage_config: dict[str, Any], variant: dict[str, Any] | None = No
     )
 
 
-def _model_inventory(resources, stage_config: dict[str, Any], device: str) -> dict[str, Any]:
+def _model_inventory(
+    resources,
+    stage_config: dict[str, Any],
+    device: str,
+    *,
+    dtype_name: str | None = None,
+    quantization: str | None = None,
+) -> dict[str, Any]:
     inventory: dict[str, Any] = {}
     keys = [stage_config.get("base_model_key", "qwen3_06b"), stage_config.get("advance_model_key", "qwen3_17b")]
     for key in keys:
@@ -74,13 +82,17 @@ def _model_inventory(resources, stage_config: dict[str, Any], device: str) -> di
             inventory[key] = {"available": False, "path": str(path), "hint": f"可执行 lab run 5（联网）自动下载，或 modelscope download --repo-type model {spec.repo_id} --local-dir {path}"}
             continue
         try:
-            model, tokenizer = load_model_and_tokenizer(path, device=device)
+            model, tokenizer = load_model_and_tokenizer(
+                path, device=device, dtype_name=dtype_name, quantization=quantization, attn_implementation="sdpa"
+            )
             inventory[key] = {
                 "available": True,
                 "path": str(path),
                 "repo_id": spec.repo_id,
                 **parameter_report(model),
                 "memory_gb": driver_memory_gb(device),
+                "quantization": quantization or "none",
+                "load_dtype": dtype_name or "auto",
                 "tokenizer_vocab": tokenizer.vocab_size,
             }
             del model, tokenizer
@@ -129,7 +141,13 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
 
     qlora = probe_qlora()
     ctx.write_json_artifact("qlora_probe.json", qlora)
-    inventory = _model_inventory(resources, stage_config, device)
+    base_dtype = settings.get("base_dtype")
+    quantization = settings.get("quantization")
+    if quantization and not base_dtype:
+        base_dtype = "bfloat16"
+    inventory = _model_inventory(
+        resources, stage_config, device, dtype_name=base_dtype, quantization=quantization
+    )
     ctx.write_json_artifact("model_inventory.json", inventory)
     logger.info("模型清单: %s", {key: value.get("available") for key, value in inventory.items()})
 
@@ -161,6 +179,10 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
             device=device,
             profile=budget.profile,
             max_samples=None,
+            dtype=base_dtype,
+            quantization=quantization,
+            gradient_checkpointing=bool(settings.get("gradient_checkpointing", False)),
+            attn_implementation=settings.get("attn_implementation"),
         )
         logger.info("开始 SFT 变体 %s：lora_r=%d，steps=%d", name, lora.r, sft_config.max_steps)
         summary = SFTTrainer(
@@ -184,11 +206,20 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
     ctx.write_artifact("sft_comparison.md", "\n".join(comparison_lines))
 
     generation_cfg = stage_config.get("generation") or {}
-    prompts = list(generation_cfg.get("prompts") or [])
+    prompts = list(generation_cfg.get("prompts") or []) if generation_cfg.get("enabled", True) else []
     primary = results[0]["summary"]
     if prompts:
         logger.info("生成对比：基座 vs 微调（%d 条提示）", len(prompts))
-        base_model, base_tokenizer = load_model_and_tokenizer(model_dir, device=device)
+        # 大模型（如 24GB 上的 14B QLoRA）依次加载基座/微调两份模型前先彻底释放显存
+        gc.collect()
+        empty_cache(device)
+        load_options = {
+            "device": device,
+            "dtype_name": base_dtype,
+            "quantization": quantization,
+            "attn_implementation": settings.get("attn_implementation"),
+        }
+        base_model, base_tokenizer = load_model_and_tokenizer(model_dir, **load_options)
         base_responses = generate_responses(
             base_model, base_tokenizer, prompts, device=device,
             max_new_tokens=int(generation_cfg.get("max_new_tokens", 60)),
@@ -197,7 +228,7 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
         )
         del base_model
         empty_cache(device)
-        tuned_model, tuned_tokenizer = load_model_and_tokenizer(model_dir, device=device)
+        tuned_model, tuned_tokenizer = load_model_and_tokenizer(model_dir, **load_options)
         from peft import PeftModel  # noqa: PLC0415
 
         tuned_model = PeftModel.from_pretrained(tuned_model, primary["adapter"])
@@ -217,10 +248,24 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
 
     export_cfg = stage_config.get("export") or {}
     export_dir = PROJECT_ROOT / str(export_cfg.get("dir", "models/exports/qwen3-0.6b-sft-lora-merged"))
-    logger.info("合并 LoRA 并导出到 %s", export_dir)
-    export_report = merge_and_export(
-        adapter_dir=Path(primary["adapter"]), base_model_dir=model_dir, output_dir=export_dir, device=device
-    )
+    if quantization:
+        export_report = {
+            "output_dir": None,
+            "merged": False,
+            "skipped": True,
+            "reason": "4bit/8bit 量化基座不合并导出；推理时用基座 + adapter",
+            "adapter": primary["adapter"],
+            "inference_hint": (
+                f"python scripts/qa_cuda.py --model-path {model_dir} --quantization {quantization} "
+                f"--adapter {primary['adapter']}"
+            ),
+        }
+        logger.info("量化训练跳过合并导出（使用 adapter + 基座推理）")
+    else:
+        logger.info("合并 LoRA 并导出到 %s", export_dir)
+        export_report = merge_and_export(
+            adapter_dir=Path(primary["adapter"]), base_model_dir=model_dir, output_dir=export_dir, device=device
+        )
     ctx.write_json_artifact("export_report.json", export_report)
 
     advance_cfg = stage_config.get("advance") or {}
@@ -247,6 +292,10 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
             seed=int(config.get("seed", 42)),
             device=device,
             profile=budget.profile,
+            dtype=base_dtype,
+            quantization=quantization,
+            gradient_checkpointing=bool(settings.get("gradient_checkpointing", False)),
+            attn_implementation=settings.get("attn_implementation"),
         )
         advance_summary = SFTTrainer(
             advance_config, ctx=ctx, budget=budget, train_records=train_records, val_records=val_records
@@ -257,6 +306,12 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
         "profile": budget.profile,
         "base_model": str(model_dir),
         "base_model_source": entry["status"],
+        "model_options": {
+            "base_dtype": base_dtype or "auto",
+            "quantization": quantization or "none",
+            "gradient_checkpointing": bool(settings.get("gradient_checkpointing", False)),
+            "attn_implementation": settings.get("attn_implementation") or "auto",
+        },
         "qlora": qlora,
         "inventory": inventory,
         "mask_check": {key: mask_report.get(key) for key in ("ok", "prompt_tokens", "response_tokens", "prompt_masked")},

@@ -1,0 +1,67 @@
+# A10 24GB：Qwen3-14B（4bit QLoRA）——权重约 8.5GB，预计峰值 11–15GB
+#
+# 前置：pip install bitsandbytes（CUDA）；A10 走 bf16 compute + NF4 double quant。
+# 用法：
+#   .venv/bin/lab run 5 --config configs/cuda-a10-14b-qlora.yaml --profile standard
+#   python scripts/qa_cuda.py --model-path models/Qwen3-14B --quantization 4bit \
+#       --adapter runs/stage-5/<run>/artifacts/adapter_a10_14b_qlora
+#
+# 说明：20 步是「显存/可行性验证档」；4bit 基座不合并导出（推理用基座+adapter）。
+data:
+  resources:
+    qwen3_14b:
+      source: modelscope
+      repo_type: model
+      repo_id: Qwen/Qwen3-14B
+      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
+      text_field: null
+      language: zh
+      license: Apache-2.0（Qwen3-14B）
+      approx_size_gb: 28.0
+      dest: models/Qwen3-14B
+
+stage5:
+  base_model_key: qwen3_14b
+  advance_model_key: qwen3_17b
+  instruction_dir: data/processed/stage3/instruction/sft_zh
+  tokenizer_dir: models/Qwen3-14B
+
+  lora:
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+
+  train:
+    standard:
+      max_samples: 1500
+      val_samples: 100
+      max_steps: 20
+      batch_size: 1
+      grad_accum: 8
+      max_seq_len: 512
+      learning_rate: 0.0001
+      warmup_steps: 5
+      log_every: 5
+      eval_every: 10
+      eval_batches: 1
+      save_every: 0
+      base_dtype: bfloat16
+      quantization: 4bit
+      gradient_checkpointing: true
+      attn_implementation: flash_attention_2
+
+  compare:
+    - name: a10_14b_qlora
+      lora_r: 16
+      learning_rate: 0.0001
+      max_steps: 20
+
+  # 24GB 上同时加载「基座 14B 4bit」+「微调 14B 4bit」约 20GB，加载第二个会 OOM；
+  # 因此这里关闭 stage5 的生成对比，训练后用 qa_cuda.py 单独验证（见文件头命令）。
+  generation:
+    enabled: false
+    prompts: []
+
+  export:
+    dir: models/exports/qwen3-14b-a10-qlora

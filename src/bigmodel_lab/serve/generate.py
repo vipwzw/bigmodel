@@ -96,15 +96,34 @@ class MLXGenerator:
 
 
 class TransformersGenerator:
-    """基于 transformers + PyTorch（CUDA / MPS / CPU 自适应）的基线生成器。"""
+    """基于 transformers + PyTorch（CUDA / MPS / CPU 自适应）的基线生成器。
+
+    支持 QLoRA 推理：``quantization="4bit"`` + ``adapter_path=<LoRA 目录>``
+    （量化基座不能合并导出，推理时用基座 + adapter 组合）。
+    """
 
     backend = "transformers"
 
-    def __init__(self, model_path: str | Path, *, device: str | None = None):
+    def __init__(
+        self,
+        model_path: str | Path,
+        *,
+        device: str | None = None,
+        quantization: str | None = None,
+        adapter_path: str | Path | None = None,
+    ):
         from ..finetune.sft import load_model_and_tokenizer  # noqa: PLC0415
 
         self.device = resolve_device(device)
-        self.model, self.tokenizer = load_model_and_tokenizer(Path(model_path), device=self.device)
+        self.quantization = quantization
+        self.adapter_path = str(adapter_path) if adapter_path else None
+        self.model, self.tokenizer = load_model_and_tokenizer(
+            Path(model_path), device=self.device, quantization=quantization
+        )
+        if self.adapter_path:
+            from peft import PeftModel  # noqa: PLC0415
+
+            self.model = PeftModel.from_pretrained(self.model, self.adapter_path)
         # 训练加载时为省显存关掉了 KV cache（见 load_model_and_tokenizer），推理必须打开，
         # 否则每生成一个 token 都要重算整段前缀，吞吐会掉一个数量级。
         self.model.config.use_cache = True
