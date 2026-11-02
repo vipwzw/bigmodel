@@ -93,9 +93,20 @@ def _environment_snapshot(root: Path) -> dict[str, Any]:
 
         snapshot["mps_available"] = bool(torch.backends.mps.is_available())
         snapshot["torch_mps_built"] = bool(torch.backends.mps.is_built())
+        snapshot["cuda_available"] = bool(torch.cuda.is_available())
+        snapshot["torch_cuda_version"] = torch.version.cuda
+        if torch.cuda.is_available():
+            properties = torch.cuda.get_device_properties(0)
+            snapshot["cuda_device"] = properties.name
+            snapshot["cuda_capability"] = f"{properties.major}.{properties.minor}"
+            snapshot["cuda_total_memory_gb"] = round(properties.total_memory / 1024**3, 1)
+            from .train.precision import cuda_bf16_supported  # noqa: PLC0415
+
+            snapshot["cuda_bf16_supported"] = cuda_bf16_supported()
     except Exception:  # noqa: BLE001 - torch 可能未安装或初始化失败
         snapshot["mps_available"] = None
         snapshot["torch_mps_built"] = None
+        snapshot["cuda_available"] = None
     return snapshot
 
 

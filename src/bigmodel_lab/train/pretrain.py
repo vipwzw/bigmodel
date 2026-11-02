@@ -20,11 +20,15 @@ from ..manifest import RunContext
 from ..models.gpt import GPT, PRESETS, GPTConfig
 from .precision import (
     autocast_context,
+    cuda_available,
     default_device,
     detect_autocast_dtype,
-    driver_memory_gb,
     empty_cache,
+    make_grad_scaler,
     mps_available,
+    peak_memory_gb,
+    reset_peak_memory,
+    resolve_device,
     sync,
 )
 
@@ -150,6 +154,7 @@ class CheckpointManager:
                 "python": random.getstate(),
                 "numpy": np.random.get_state(),
                 "mps": torch.mps.get_rng_state() if mps_available() else None,
+                "cuda": torch.cuda.get_rng_state() if cuda_available() else None,
             },
         }
         tmp = path.with_suffix(".pt.tmp")
@@ -192,6 +197,7 @@ class CheckpointManager:
                 "python": random.getstate(),
                 "numpy": np.random.get_state(),
                 "mps": torch.mps.get_rng_state() if mps_available() else None,
+                "cuda": torch.cuda.get_rng_state() if cuda_available() else None,
             },
         }
         torch.save(state, path)
@@ -212,6 +218,8 @@ def _load_checkpoint(path: Path, model: GPT, optimizer, scheduler) -> dict[str, 
         np.random.set_state(rng["numpy"])
     if rng.get("mps") is not None and mps_available():
         torch.mps.set_rng_state(rng["mps"])
+    if rng.get("cuda") is not None and cuda_available():
+        torch.cuda.set_rng_state(rng["cuda"])
     return state
 
 
@@ -252,10 +260,11 @@ class Pretrainer:
         self.ctx = ctx
         self.budget = budget
         self.packed_dir = packed_dir
-        self.device = config.device if mps_available() else "cpu"
+        self.device = resolve_device(config.device)
         self.model_config: GPTConfig = PRESETS[config.preset]
         self.seq_len = min(self.model_config.block_size, 1024)
         self.autocast_dtype, self.autocast_name = detect_autocast_dtype(self.device)
+        self.scaler = make_grad_scaler(self.device, self.autocast_dtype)
         self.metrics: list[dict[str, Any]] = []
 
     # ---------- 初始化 ----------
@@ -303,7 +312,8 @@ class Pretrainer:
             logger.info("从检查点续训: %s（step=%d, tokens_seen=%d）", config.resume_from, start_step, tokens_seen)
 
         training_started = time.time()
-        peak_memory = driver_memory_gb(self.device)
+        reset_peak_memory(self.device)
+        peak_memory = peak_memory_gb(self.device)
         last_loss = float("nan")
         for step in range(start_step, max_steps):
             try:
@@ -331,16 +341,25 @@ class Pretrainer:
                         ) from exc
                     raise
                 loss = loss / config.grad_accum
-                loss.backward()
+                if self.scaler is not None:
+                    self.scaler.scale(loss).backward()
+                else:
+                    loss.backward()
                 accumulated_loss += float(loss.item())
+            if self.scaler is not None:
+                self.scaler.unscale_(optimizer)
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip)
-            optimizer.step()
+            if self.scaler is not None:
+                self.scaler.step(optimizer)
+                self.scaler.update()
+            else:
+                optimizer.step()
             scheduler.step()
             last_loss = accumulated_loss
             tokens_seen += config.tokens_per_step(self.seq_len)
             sync(self.device)
             step_seconds = time.perf_counter() - step_started
-            peak_memory = max(peak_memory, driver_memory_gb(self.device))
+            peak_memory = max(peak_memory, peak_memory_gb(self.device))
 
             if not math.isfinite(last_loss):
                 raise RuntimeError(f"训练损失非有限值（step={step}, loss={last_loss}）")
@@ -392,6 +411,7 @@ class Pretrainer:
             "data_key": config.data_key,
             "device": self.device,
             "autocast": self.autocast_name,
+            "grad_scaler": self.scaler is not None,
             "seq_len": self.seq_len,
             "batch_size": config.batch_size,
             "grad_accum": config.grad_accum,

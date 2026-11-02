@@ -1,15 +1,30 @@
-"""Stage 1 性能基线：矩阵运算 GFLOPS、tiny GPT 训练步吞吐，并据此校准 token 预算。"""
+"""Stage 1 性能基线：矩阵运算 GFLOPS、tiny GPT 训练步吞吐，并据此校准 token 预算。
+
+CUDA 与 Apple MPS 共用同一套基线逻辑；MLX 仅在 macOS（Apple Silicon）上作为对照后端。
+"""
 
 from __future__ import annotations
 
 import json
 import time
-from contextlib import nullcontext
 from datetime import UTC, datetime
 from typing import Any
 
 from .budget import Budget
 from .models.gpt import GPT, PRESETS, STANDARD_TOKEN_BUDGET, GPTConfig
+from .train.precision import (
+    allocated_memory_gb,
+    autocast_context,
+    cuda_available,
+    cuda_bf16_supported,
+    default_device,
+    detect_autocast_dtype,
+    empty_cache,
+    mps_available,
+    peak_memory_gb,
+    reset_peak_memory,
+    sync,
+)
 
 MATMUL_SIZE = 4096
 SANITY_MATMUL_SIZE = 2048
@@ -19,39 +34,35 @@ def _now_iso() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
 
 
-def _sync_mps() -> None:
+def gpu_backend() -> str | None:
+    """返回可用 GPU 后端：cuda → mps → None（CPU）。"""
+    if cuda_available():
+        return "cuda"
+    if mps_available():
+        return "mps"
+    return None
+
+
+def _torch_matmul_gflops(
+    size: int, dtype_name: str, repeats: int = 8, *, device: str | None = None
+) -> dict[str, Any]:
     import torch  # noqa: PLC0415
 
-    if hasattr(torch, "mps") and torch.backends.mps.is_available():
-        torch.mps.synchronize()
-
-
-def _mps_available() -> bool:
-    try:
-        import torch  # noqa: PLC0415
-
-        return bool(torch.backends.mps.is_available())
-    except Exception:  # noqa: BLE001
-        return False
-
-
-def _mps_matmul_gflops(size: int, dtype_name: str, repeats: int = 8) -> dict[str, Any] | None:
-    import torch  # noqa: PLC0415
-
+    device = device or default_device()
     dtype = {"float32": torch.float32, "float16": torch.float16, "bfloat16": torch.bfloat16}[dtype_name]
     try:
-        a = torch.randn(size, size, device="mps", dtype=dtype)
-        b = torch.randn(size, size, device="mps", dtype=dtype)
-        _sync_mps()
+        a = torch.randn(size, size, device=device, dtype=dtype)
+        b = torch.randn(size, size, device=device, dtype=dtype)
+        sync(device)
         for _ in range(2):
             torch.mm(a, b)
-        _sync_mps()
+        sync(device)
         started = time.perf_counter()
         for _ in range(repeats):
             torch.mm(a, b)
-            _sync_mps()
+            sync(device)
         elapsed = time.perf_counter() - started
-    except Exception as exc:  # noqa: BLE001 - 某些 dtype 在 MPS 上不可用
+    except Exception as exc:  # noqa: BLE001 - 某些 dtype 在旧 GPU（如 V100 的 bf16）上不可用
         return {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
     flops = 2 * size**3 * repeats
     return {
@@ -93,44 +104,27 @@ def _mlx_matmul_gflops(size: int, dtype_name: str, repeats: int = 8) -> dict[str
     }
 
 
-def _detect_autocast_dtype() -> tuple[Any, str]:
-    """探测 MPS 上可用的最低精度（bf16 → fp16 → fp32）。"""
-    import torch  # noqa: PLC0415
-
-    for dtype, name in ((torch.bfloat16, "bfloat16"), (torch.float16, "float16")):
-        try:
-            x = torch.randn(64, 64, device="mps", dtype=dtype)
-            _ = (x @ x).sum().item()
-            _sync_mps()
-            return dtype, name
-        except Exception:  # noqa: BLE001 - 尝试下一种精度
-            continue
-    return None, "float32"
-
-
 def _torch_train_step(
     preset: str,
     *,
     batch_size: int,
     steps: int,
     profile: str,
+    device: str | None = None,
 ) -> dict[str, Any]:
     import torch  # noqa: PLC0415
 
+    device = device or default_device()
     config: GPTConfig = PRESETS[preset]
-    model = GPT(config).to("mps")
+    autocast_dtype, dtype_name = detect_autocast_dtype(device)
+    model = GPT(config).to(device)
     model.train()
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
     generator = torch.Generator(device="cpu").manual_seed(1234)
-    idx = torch.randint(0, config.vocab_size, (batch_size, config.block_size), generator=generator).to("mps")
-    targets = torch.randint(0, config.vocab_size, (batch_size, config.block_size), generator=generator).to("mps")
-    autocast_dtype, dtype_name = _detect_autocast_dtype()
-    context = (
-        torch.autocast(device_type="mps", dtype=autocast_dtype)
-        if autocast_dtype is not None
-        else nullcontext()
-    )
-    torch.mps.empty_cache()
+    idx = torch.randint(0, config.vocab_size, (batch_size, config.block_size), generator=generator).to(device)
+    targets = torch.randint(0, config.vocab_size, (batch_size, config.block_size), generator=generator).to(device)
+    reset_peak_memory(device)
+    empty_cache(device)
     timings: list[float] = []
     burned = 0
     peak_driver = 0.0
@@ -139,14 +133,14 @@ def _torch_train_step(
         for step_index in range(steps + 2):
             optimizer.zero_grad(set_to_none=True)
             started = time.perf_counter()
-            with context:
+            with autocast_context(device, autocast_dtype):
                 loss, _ = model(idx, targets)
             loss.backward()
             optimizer.step()
-            _sync_mps()
+            sync(device)
             elapsed = time.perf_counter() - started
-            peak_driver = max(peak_driver, torch.mps.driver_allocated_memory() / 1024**3)
-            peak_allocated = max(peak_allocated, torch.mps.current_allocated_memory() / 1024**3)
+            peak_driver = max(peak_driver, peak_memory_gb(device))
+            peak_allocated = max(peak_allocated, allocated_memory_gb(device))
             if step_index >= 2:  # 前两步预热
                 timings.append(elapsed)
                 burned += batch_size * config.block_size
@@ -156,7 +150,7 @@ def _torch_train_step(
         final_loss = float(loss.item())
     finally:
         del model, optimizer
-        torch.mps.empty_cache()
+        empty_cache(device)
     return {
         "available": True,
         "preset": preset,
@@ -164,6 +158,7 @@ def _torch_train_step(
         "flops_per_token": config.flops_per_token(),
         "block_size": config.block_size,
         "batch_size": batch_size,
+        "device": device,
         "timed_steps": len(timings),
         "autocast_dtype": dtype_name,
         "tokens_per_second": round(tokens_per_second, 1),
@@ -195,59 +190,87 @@ def calibrate_budget(throughput: dict[str, dict[str, Any]]) -> dict[str, Any]:
 
 
 def run_benchmark(budget: Budget) -> dict[str, Any]:
-    if not _mps_available():
-        raise RuntimeError("MPS 不可用，无法运行 Apple Silicon 性能基线")
+    backend = gpu_backend()
+    if backend is None:
+        raise RuntimeError("未检测到 GPU（CUDA/MPS），无法运行性能基线")
+    device = default_device()
     size = SANITY_MATMUL_SIZE if budget.profile == "sanity" else MATMUL_SIZE
     repeats = 4 if budget.profile == "sanity" else 8
     steps = 2 if budget.profile == "sanity" else 3
     batch_sizes = {"s": 2, "m": 2, "l": 1} if budget.profile == "sanity" else {"s": 8, "m": 4, "l": 2}
 
-    matmul: dict[str, Any] = {}
-    for backend, fn in (("mps", _mps_matmul_gflops), ("mlx", _mlx_matmul_gflops)):
-        matmul[backend] = {}
+    matmul: dict[str, Any] = {backend: {}}
+    for dtype_name in ("float32", "float16", "bfloat16"):
+        budget.check()
+        matmul[backend][dtype_name] = _torch_matmul_gflops(size, dtype_name, repeats, device=device)
+    if mps_available():
+        matmul["mlx"] = {}
         for dtype_name in ("float32", "float16", "bfloat16"):
             budget.check()
-            matmul[backend][dtype_name] = fn(size, dtype_name, repeats)
+            matmul["mlx"][dtype_name] = _mlx_matmul_gflops(size, dtype_name, repeats)
+    # V100 等无原生 bf16 的卡上，bf16 矩阵运算走软件模拟，标注出来避免误读
+    if backend == "cuda" and not cuda_bf16_supported():
+        bf16_entry = matmul[backend].get("bfloat16")
+        if bf16_entry and bf16_entry.get("available"):
+            bf16_entry["emulated"] = True
+            bf16_entry["note"] = "软件模拟，训练会自动改用 fp16 + GradScaler"
 
     pretrain: dict[str, Any] = {}
     for preset, batch_size in batch_sizes.items():
         budget.check()
         try:
             pretrain[preset] = _torch_train_step(
-                preset, batch_size=batch_size, steps=steps, profile=budget.profile
+                preset, batch_size=batch_size, steps=steps, profile=budget.profile, device=device
             )
         except Exception as exc:  # noqa: BLE001 - 记录失败但保留其余结果
             pretrain[preset] = {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
 
     calibration = calibrate_budget(pretrain)
-    best_mps = max(
-        (item["gflops"] for item in matmul["mps"].values() if item and item.get("available")),
-        default=None,
-    )
-    best_mlx = max(
-        (item["gflops"] for item in matmul["mlx"].values() if item and item.get("available")),
-        default=None,
-    )
+    best_matmul = {
+        name: max(
+            (entry["gflops"] for entry in entries.values() if entry and entry.get("available")),
+            default=None,
+        )
+        for name, entries in matmul.items()
+    }
+    notes = [
+        "tokens/s 为 GPT 训练（前向+反向+优化器步）实测吞吐，已包含梯度同步开销",
+        "校准耗时 = standard token 预算 / 实测 tokens/s；正式训练受数据加载、检查点写入影响可能更慢",
+        "CUDA 后端在 Ampere+ 用 bf16 autocast，V100 等 sm70 卡自动回落 fp16+梯度缩放；"
+        "MLX 仅 macOS 可用，作为 Apple 原生对照",
+    ]
     return {
         "generated_at": _now_iso(),
         "profile": budget.profile,
+        "device": device,
+        "device_name": _device_name(device),
         "matmul_size": size,
         "matmul": matmul,
-        "matmul_best_gflops": {"mps": best_mps, "mlx": best_mlx},
+        "matmul_best_gflops": best_matmul,
         "pretrain_step": pretrain,
         "calibration": calibration,
-        "notes": [
-            "tokens/s 为 GPT 训练（前向+反向+优化器步）实测吞吐，已包含梯度同步开销",
-            "校准耗时 = standard token 预算 / 实测 tokens/s；正式训练受数据加载、检查点写入影响可能更慢",
-            "MLX 仅测矩阵运算基线；完整 MLX 训练对照在 Stage 4 实现",
-        ],
+        "notes": notes,
     }
+
+
+def _device_name(device: str) -> str:
+    import torch  # noqa: PLC0415
+
+    try:
+        if device.startswith("cuda"):
+            return torch.cuda.get_device_name(torch.device("cuda"))
+        if device == "mps":
+            return "Apple MPS"
+    except Exception:  # noqa: BLE001
+        return device
+    return device
 
 
 def to_markdown(result: dict[str, Any]) -> str:
     lines = ["# Stage 1 性能基线报告", ""]
     lines.append(f"- 生成时间：{result['generated_at']}")
     lines.append(f"- 档位：{result['profile']}")
+    lines.append(f"- 设备：{result.get('device_name') or result.get('device')}")
     lines.append(f"- 矩阵规模：{result['matmul_size']}×{result['matmul_size']}")
     lines.append("")
     lines.append("## 矩阵运算 GFLOPS")
@@ -257,7 +280,8 @@ def to_markdown(result: dict[str, Any]) -> str:
     for backend, entries in result["matmul"].items():
         for dtype_name, entry in entries.items():
             if entry and entry.get("available"):
-                lines.append(f"| {backend} | {dtype_name} | {entry['gflops']} | ✅ |")
+                note = f"（{entry['note']}）" if entry.get("note") else ""
+                lines.append(f"| {backend} | {dtype_name} | {entry['gflops']} | ✅{note} |")
             else:
                 reason = (entry or {}).get("reason", "未知原因")
                 lines.append(f"| {backend} | {dtype_name} | - | ❌ {reason[:60]} |")

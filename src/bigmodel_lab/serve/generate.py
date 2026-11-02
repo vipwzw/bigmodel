@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ..train.precision import default_device, driver_memory_gb
+from ..train.precision import driver_memory_gb, resolve_device
 
 DEFAULT_SYSTEM_PROMPT = "你是一个乐于助人的中文助手。"
 
@@ -96,15 +96,18 @@ class MLXGenerator:
 
 
 class TransformersGenerator:
-    """基于 transformers + PyTorch MPS 的基线生成器。"""
+    """基于 transformers + PyTorch（CUDA / MPS / CPU 自适应）的基线生成器。"""
 
     backend = "transformers"
 
     def __init__(self, model_path: str | Path, *, device: str | None = None):
         from ..finetune.sft import load_model_and_tokenizer  # noqa: PLC0415
 
-        self.device = device or default_device()
-        self.model, self.tokenizer = load_model_and_tokenizer(Path(model_path), device=self.device, dtype_name="bfloat16")
+        self.device = resolve_device(device)
+        self.model, self.tokenizer = load_model_and_tokenizer(Path(model_path), device=self.device)
+        # 训练加载时为省显存关掉了 KV cache（见 load_model_and_tokenizer），推理必须打开，
+        # 否则每生成一个 token 都要重算整段前缀，吞吐会掉一个数量级。
+        self.model.config.use_cache = True
         self.model.eval()
 
     def stream(self, messages: list[dict[str, str]], params: SamplingParams) -> Iterator[str]:

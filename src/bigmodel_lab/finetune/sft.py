@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import math
 import time
-from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -16,7 +15,18 @@ from torch.utils.data import DataLoader
 from ..budget import Budget, BudgetExceeded
 from ..data.chat import IGNORE_INDEX, SFTDataset, collate_sft
 from ..manifest import RunContext
-from ..train.precision import default_device, driver_memory_gb, empty_cache, mps_available, sync
+from ..train.precision import (
+    autocast_context,
+    default_device,
+    default_dtype_name,
+    detect_autocast_dtype,
+    empty_cache,
+    make_grad_scaler,
+    peak_memory_gb,
+    reset_peak_memory,
+    resolve_device,
+    sync,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -68,10 +78,11 @@ def load_model_and_tokenizer(
     model_dir: Path,
     *,
     device: str,
-    dtype_name: str = "bfloat16",
+    dtype_name: str | None = None,
 ):
     from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: PLC0415
 
+    dtype_name = dtype_name or default_dtype_name(device)
     if not Path(model_dir).exists():
         raise FileNotFoundError(
             f"本地模型目录不存在: {model_dir}；请先运行 lab run 5 自动下载，或手动执行 "
@@ -126,8 +137,8 @@ def probe_qlora() -> dict[str, Any]:
         return {
             "available": False,
             "reason": f"未安装 bitsandbytes（{type(exc).__name__}: {exc}）",
-            "fallback": "主路径使用 bf16 LoRA；模型规模在 48GB 统一内存内无需 4bit 量化即可训练"
-                        "（Qwen3-0.6B/1.7B LoRA 均可直接跑）",
+            "fallback": "主路径使用 bf16/fp16 混合精度 LoRA；单卡 16–48GB 显存/统一内存内"
+                        "无需 4bit 量化即可训练（Qwen3-0.6B LoRA 在 V100 16GB 上以 fp16 AMP 可跑）",
         }
 
 
@@ -153,14 +164,23 @@ def _build_loader(
 
 
 @torch.no_grad()
-def evaluate_loss(model, loader: DataLoader, *, batches: int, device: str, autocast: bool = True) -> float:
+def evaluate_loss(
+    model,
+    loader: DataLoader,
+    *,
+    batches: int,
+    device: str,
+    autocast: bool = True,
+    autocast_dtype=None,
+) -> float:
     model.eval()
     losses: list[float] = []
+    dtype = autocast_dtype if autocast else None
     for index, batch in enumerate(loader):
         if index >= batches:
             break
         batch = {key: value.to(device) for key, value in batch.items()}
-        context = torch.autocast(device_type="mps", dtype=torch.bfloat16) if autocast and device == "mps" else nullcontext()
+        context = autocast_context(device, dtype)
         with context:
             outputs = model(**batch)
         losses.append(float(outputs.loss.item()))
@@ -183,7 +203,11 @@ class SFTTrainer:
         self.config = config
         self.ctx = ctx
         self.budget = budget
-        self.device = config.device if mps_available() else "cpu"
+        self.device = resolve_device(config.device)
+        self.autocast_dtype, self.autocast_name = (
+            detect_autocast_dtype(self.device) if config.autocast else (None, "float32")
+        )
+        self.scaler = make_grad_scaler(self.device, self.autocast_dtype)
         self.train_records = train_records
         self.val_records = val_records
         self.model = model
@@ -203,9 +227,9 @@ class SFTTrainer:
         return train_loader, val_loader
 
     def _forward_context(self):
-        if self.config.autocast and self.device == "mps":
-            return torch.autocast(device_type="mps", dtype=torch.bfloat16)
-        return nullcontext()
+        if not self.config.autocast:
+            return autocast_context(self.device, None)
+        return autocast_context(self.device, self.autocast_dtype)
 
     def _save_adapter(self, directory: Path, step: int, optimizer, scheduler) -> Path:
         directory.mkdir(parents=True, exist_ok=True)
@@ -216,6 +240,7 @@ class SFTTrainer:
             "optimizer": optimizer.state_dict(),
             "scheduler": scheduler.state_dict(),
             "rng": {"torch": torch.get_rng_state()},
+            "scaler": self.scaler.state_dict() if self.scaler is not None else None,
         }
         torch.save(state, directory / "trainer_state.pt")
         return directory
@@ -232,6 +257,8 @@ class SFTTrainer:
         scheduler.load_state_dict(state["scheduler"])
         if state.get("rng", {}).get("torch") is not None:
             torch.set_rng_state(state["rng"]["torch"])
+        if self.scaler is not None and state.get("scaler"):
+            self.scaler.load_state_dict(state["scaler"])
         return int(state["step"])
 
     def train(self) -> dict[str, Any]:
@@ -253,7 +280,10 @@ class SFTTrainer:
             return 0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * progress))
 
         scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=factor)
-        baseline_val_loss = evaluate_loss(self.model, val_loader, batches=config.eval_batches, device=self.device, autocast=config.autocast)
+        baseline_val_loss = evaluate_loss(
+            self.model, val_loader, batches=config.eval_batches, device=self.device,
+            autocast=config.autocast, autocast_dtype=self.autocast_dtype,
+        )
         self.ctx.log_metrics(stage="sft", kind="eval", step=0, val_loss=round(baseline_val_loss, 6))
         logger.info("SFT 初始验证损失: %.4f", baseline_val_loss)
         start_step = 0
@@ -263,7 +293,8 @@ class SFTTrainer:
 
         self.model.train()
         tokens_seen = 0
-        peak_memory = driver_memory_gb(self.device)
+        reset_peak_memory(self.device)
+        peak_memory = peak_memory_gb(self.device)
         started = time.time()
         step = start_step
         last_loss = float("nan")
@@ -289,20 +320,39 @@ class SFTTrainer:
             step_loss_sum = 0.0
             for _ in range(config.grad_accum):
                 batch = {key: value.to(self.device) for key, value in next_batch().items()}
-                with self._forward_context():
-                    outputs = self.model(**batch)
+                try:
+                    with self._forward_context():
+                        outputs = self.model(**batch)
+                except RuntimeError as exc:
+                    if "out of memory" in str(exc).lower():
+                        raise RuntimeError(
+                            "显存不足：减小 batch_size / max_seq_len，或增大 grad_accum；"
+                            f"当前 batch_size={config.batch_size}, grad_accum={config.grad_accum}, "
+                            f"max_seq_len={config.max_seq_len}, device={self.device}"
+                        ) from exc
+                    raise
                 loss = outputs.loss
-                (loss / config.grad_accum).backward()
+                scaled_loss = loss / config.grad_accum
+                if self.scaler is not None:
+                    self.scaler.scale(scaled_loss).backward()
+                else:
+                    scaled_loss.backward()
                 step_loss_sum += float(loss.item())
                 step_tokens += int(batch["attention_mask"].sum().item())
             last_loss = step_loss_sum / config.grad_accum
+            if self.scaler is not None:
+                self.scaler.unscale_(optimizer)
             grad_norm = torch.nn.utils.clip_grad_norm_(trainable, config.max_grad_norm)
-            optimizer.step()
+            if self.scaler is not None:
+                self.scaler.step(optimizer)
+                self.scaler.update()
+            else:
+                optimizer.step()
             scheduler.step()
             sync(self.device)
             step_seconds = time.perf_counter() - step_started
             tokens_seen += step_tokens
-            peak_memory = max(peak_memory, driver_memory_gb(self.device))
+            peak_memory = max(peak_memory, peak_memory_gb(self.device))
             if not math.isfinite(last_loss):
                 raise RuntimeError(f"SFT 损失非有限值（step={step}, loss={last_loss}）")
             if config.log_every and step % config.log_every == 0:
@@ -321,13 +371,19 @@ class SFTTrainer:
                 self.ctx.log_metrics(**record)
                 logger.info("[SFT r=%d] step %d/%d loss %.4f tok/s %.0f", config.lora.r, step, config.max_steps, last_loss, record["tokens_per_second"])
             if config.eval_every and step > 0 and step % config.eval_every == 0:
-                val_loss = evaluate_loss(self.model, val_loader, batches=config.eval_batches, device=self.device, autocast=config.autocast)
+                val_loss = evaluate_loss(
+                    self.model, val_loader, batches=config.eval_batches, device=self.device,
+                    autocast=config.autocast, autocast_dtype=self.autocast_dtype,
+                )
                 self.ctx.log_metrics(stage="sft", kind="eval", step=step, val_loss=round(val_loss, 6))
             if config.save_every and step > 0 and step % config.save_every == 0:
                 self._save_adapter(self.ctx.checkpoints_dir / "sft" / f"step_{step}", step, optimizer, scheduler)
             step += 1
 
-        final_val_loss = evaluate_loss(self.model, val_loader, batches=config.eval_batches, device=self.device, autocast=config.autocast)
+        final_val_loss = evaluate_loss(
+            self.model, val_loader, batches=config.eval_batches, device=self.device,
+            autocast=config.autocast, autocast_dtype=self.autocast_dtype,
+        )
         adapter_dir = self._save_adapter(self.ctx.artifact_path("adapter"), step, optimizer, scheduler)
         self.ctx.add_artifact(adapter_dir)
         wall_seconds = time.time() - started
@@ -348,6 +404,8 @@ class SFTTrainer:
             "tokens_per_second": round(tokens_seen / max(wall_seconds, 1e-9), 1),
             "peak_memory_gb": peak_memory,
             "device": self.device,
+            "autocast": self.autocast_name,
+            "grad_scaler": self.scaler is not None,
             **report,
             "adapter": str(adapter_dir),
             "metrics": self.metrics,
@@ -370,6 +428,9 @@ def generate_responses(
 ) -> list[str]:
     torch.manual_seed(seed)
     model.eval()
+    # 推理时打开 KV cache：训练加载时被关掉（省显存），不打开会让生成退化为 O(n²)
+    if getattr(model, "config", None) is not None:
+        model.config.use_cache = True
     responses: list[str] = []
     for prompt in prompts:
         messages = [{"role": "user", "content": prompt}]

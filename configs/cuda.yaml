@@ -1,0 +1,87 @@
+# CUDA 单卡实验配置（A10 24GB / V100 16GB 通用）
+#
+# 用法：
+#   .venv/bin/lab run 1 --profile sanity                 # 环境自检 + GPU 性能基线
+#   .venv/bin/lab run 2 --profile sanity                 # 下载语料 + 清洗/去重
+#   .venv/bin/lab run 3 --profile sanity                 # 分词器/打包/指令格式化
+#   .venv/bin/lab run 5 --config configs/cuda.yaml --profile standard   # LoRA SFT（本文件）
+#   python scripts/qa_cuda.py                             # 测试数据：固定问题集问答
+#
+# 说明：本文件覆盖 stage5 的 standard 档与生成提示；sanity 档仍使用 configs/stage5.yaml 的 Default 值。
+
+network:
+  priority: [cache, modelscope, hf-mirror, hf]
+  proxy: null
+  timeout_seconds: 8.0
+
+stage5:
+  base_model_key: qwen3_06b
+  advance_model_key: qwen3_17b
+  instruction_dir: data/processed/stage3/instruction/sft_zh
+  tokenizer_dir: models/Qwen3-0.6B
+
+  lora:
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+
+  # CUDA 单卡：fp32 主权重 + autocast（Ampere+ bf16 / V100 fp16+GradScaler），显存 16GB 可跑
+  train:
+    sanity:
+      max_samples: 4000
+      val_samples: 200
+      max_steps: 120
+      batch_size: 2
+      grad_accum: 4
+      max_seq_len: 512
+      learning_rate: 0.0001
+      warmup_steps: 10
+      log_every: 10
+      eval_every: 60
+      eval_batches: 4
+      save_every: 60
+    standard:
+      max_samples: 12000
+      val_samples: 200
+      max_steps: 600
+      batch_size: 2
+      grad_accum: 4
+      max_seq_len: 512
+      learning_rate: 0.0001
+      warmup_steps: 20
+      log_every: 20
+      eval_every: 100
+      eval_batches: 4
+      save_every: 200
+
+  # 单变体：标准档一次跑完，避免两个变体把时间翻倍
+  compare:
+    - name: cuda_r16
+      lora_r: 16
+      learning_rate: 0.0001
+      max_steps: 600
+
+  # 测试数据：固定的 10 条样例问题（训练前后各生成一次，人工检查）
+  generation:
+    prompts:
+      - 你好，你是谁？
+      - 1+1等于几？2+3等于几？
+      - 中国的首都是哪座城市？
+      - 什么是机器学习？
+      - 用一句话解释什么是大语言模型。
+      - 给初学者三条学习深度学习的建议。
+      - 请用中文写一句关于秋天的诗句。
+      - 解释一下 LoRA 微调的原理。
+      - 如果一个模型回答总是很啰嗦，你会怎么改进？
+      - 太阳系中体积最大的行星是哪个？
+    max_new_tokens: 80
+    temperature: 0.7
+    top_p: 0.9
+
+  export:
+    dir: models/exports/qwen3-0.6b-cuda-sft-merged
+
+  advance:
+    enabled: false
+    max_steps: 20

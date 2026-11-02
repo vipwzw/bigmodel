@@ -1,0 +1,32 @@
+# A10 24GB 专用覆盖（与 configs/cuda.yaml 叠加使用）
+#
+# 用法：
+#   .venv/bin/lab run 5 --config configs/cuda.yaml --config configs/cuda-a10.yaml --profile standard
+#
+# A10 特点：sm86，支持 bf16 → 程序自动走 bf16 autocast（无需 GradScaler）；24GB 显存，
+# 可用更大 micro-batch 与更长序列（日志里 val loss / tokens/s 会与 V100 有差异，属正常）。
+
+stage5:
+  train:
+    sanity:
+      batch_size: 2
+      grad_accum: 4
+      max_seq_len: 1024
+      max_steps: 120
+      learning_rate: 0.0001
+    standard:
+      batch_size: 2
+      grad_accum: 4
+      max_seq_len: 1024
+      max_steps: 400
+      learning_rate: 0.0001
+      warmup_steps: 20
+
+  compare:
+    - name: a10_r16
+      lora_r: 16
+      learning_rate: 0.0001
+      max_steps: 400
+
+  export:
+    dir: models/exports/qwen3-0.6b-a10-sft-merged

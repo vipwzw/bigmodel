@@ -1,0 +1,23 @@
+# CUDA 单卡「运行时」依赖（不含 torch，用于镜像已预装 CUDA 版 torch 的环境，如阿里云 PAI-DSW）
+#
+# 适用场景：`python -c "import torch; assert torch.cuda.is_available()"` 已通过。
+# 安装：pip install -r requirements/cuda-runtime.txt
+# 说明：V100（sm70）与 A10（sm86）共用同一套依赖；bf16/fp16 的选择由程序运行时探测。
+transformers>=4.51
+tokenizers>=0.19
+datasets>=2.20
+accelerate>=0.33
+peft>=0.11
+trl>=0.9
+modelscope>=1.15
+huggingface_hub>=0.23
+safetensors>=0.4
+numpy
+pyyaml>=6.0
+pydantic>=2.7
+tqdm>=4.66
+matplotlib>=3.8
+fastapi>=0.111
+uvicorn>=0.30
+pytest>=8.0
+ruff>=0.6

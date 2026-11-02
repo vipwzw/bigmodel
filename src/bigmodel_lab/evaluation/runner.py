@@ -61,7 +61,7 @@ def perplexity_eval(
                 break
         if len(chunk_tokens) >= max_batches * 4:
             break
-    autocast_dtype, _ = detect_autocast_dtype(device) if device == "mps" else (None, "float32")
+    autocast_dtype, _ = detect_autocast_dtype(device)
     total_loss = 0.0
     total_tokens = 0
     model.eval()

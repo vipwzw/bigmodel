@@ -19,9 +19,9 @@ from typing import Any, Literal
 
 from .config import PROJECT_ROOT, LabConfig, NetworkConfig
 
-Status = Literal["PASS", "WARN", "FAIL"]
+Status = Literal["PASS", "WARN", "FAIL", "SKIP"]
 
-_STATUS_ORDER: dict[str, int] = {"PASS": 0, "WARN": 1, "FAIL": 2}
+_STATUS_ORDER: dict[str, int] = {"SKIP": 0, "PASS": 1, "WARN": 2, "FAIL": 3}
 
 CORE_PACKAGES: dict[str, str] = {
     "yaml": "pyyaml",
@@ -38,12 +38,12 @@ TRAIN_PACKAGES: dict[str, str] = {
     "trl": "trl",
     "modelscope": "modelscope",
 }
-OPTIONAL_PACKAGES: dict[str, tuple[str, str]] = {
-    "mlx": ("mlx", "MLX 对照实验（mlx 依赖组）"),
-    "mlx_lm": ("mlx-lm", "MLX 量化推理（mlx 依赖组）"),
-    "matplotlib": ("matplotlib", "曲线绘制（eval 依赖组）"),
-    "fastapi": ("fastapi", "OpenAI 兼容服务（serve 依赖组）"),
-    "uvicorn": ("uvicorn", "OpenAI 兼容服务（serve 依赖组）"),
+OPTIONAL_PACKAGES: dict[str, tuple[str, str, str]] = {
+    "mlx": ("mlx", "MLX 对照实验（mlx 依赖组，仅 macOS）", "darwin"),
+    "mlx_lm": ("mlx-lm", "MLX 量化推理（mlx 依赖组，仅 macOS）", "darwin"),
+    "matplotlib": ("matplotlib", "曲线绘制（eval 依赖组）", "any"),
+    "fastapi": ("fastapi", "OpenAI 兼容服务（serve 依赖组）", "any"),
+    "uvicorn": ("uvicorn", "OpenAI 兼容服务（serve 依赖组）", "any"),
 }
 
 MPS_MIN_FREE_GB = 10.0
@@ -79,11 +79,15 @@ def _version_of(distribution: str) -> str | None:
 def check_python() -> CheckResult:
     version = platform.python_version()
     major, minor = (int(part) for part in version.split(".")[:2])
-    if (major, minor) >= (3, 12):
-        return CheckResult("python", "PASS", f"Python {version}")
+    # macOS 课程环境用 uv 锁定 Python 3.12；Linux CUDA 服务器常用系统 3.10/3.11，
+    # 代码本身兼容 ≥3.11（见 pyproject/文档），因此 Linux 上放宽为 3.11。
+    minimum = (3, 12) if sys.platform == "darwin" else (3, 11)
+    if (major, minor) >= minimum:
+        note = "" if (major, minor) >= (3, 12) else "（Linux CUDA 环境最低 3.11；macOS 用 3.12）"
+        return CheckResult("python", "PASS", f"Python {version}{note}")
     return CheckResult(
-        "python", "FAIL", f"Python {version} 过旧（需要 ≥3.12）",
-        fix="用 uv 创建 3.12 环境：uv venv --python 3.12 .venv && uv sync --all-groups",
+        "python", "FAIL", f"Python {version} 过旧（需要 ≥{minimum[0]}.{minimum[1]}）",
+        fix="Linux：apt/python3.11 或 uv venv --python 3.12 .venv；macOS：uv sync --all-groups",
     )
 
 
@@ -113,15 +117,22 @@ def check_packages() -> list[CheckResult]:
         results.append(CheckResult("train-packages", "PASS", detail + " …"))
 
     missing_optional = [
-        f"{dist}（{purpose}）" for module, (dist, purpose) in OPTIONAL_PACKAGES.items() if not _importable(module)
+        f"{dist}（{purpose}）"
+        for module, (dist, purpose, platform_name) in OPTIONAL_PACKAGES.items()
+        if (platform_name == "any" or platform_name == sys.platform) and not _importable(module)
     ]
     if missing_optional:
         results.append(CheckResult(
             "optional-packages", "WARN", f"缺少可选依赖: {'; '.join(missing_optional)}",
-            fix="uv sync --all-groups",
+            fix="uv sync --all-groups 或按需安装对应依赖组",
         ))
     else:
-        results.append(CheckResult("optional-packages", "PASS", "mlx / mlx-lm / matplotlib / fastapi 均已安装"))
+        installed = [
+            dist
+            for module, (dist, _purpose, platform_name) in OPTIONAL_PACKAGES.items()
+            if (platform_name == "any" or platform_name == sys.platform) and _importable(module)
+        ]
+        results.append(CheckResult("optional-packages", "PASS", f"已安装: {', '.join(installed)}"))
     return results
 
 
@@ -134,6 +145,8 @@ def _importable(module: str) -> bool:
 
 
 def check_mps() -> CheckResult:
+    if sys.platform != "darwin":
+        return CheckResult("mps", "SKIP", f"当前平台 {sys.platform} 无 Apple MPS（跳过）")
     if not _importable("torch"):
         return CheckResult(
             "mps", "FAIL", "未安装 torch，无法使用 Apple Silicon GPU",
@@ -154,7 +167,50 @@ def check_mps() -> CheckResult:
     )
 
 
+def check_cuda() -> CheckResult:
+    """CUDA 检查：Linux + NVIDIA GPU 走 PASS；macOS 跳过；无 GPU 时给出告警而不是失败。"""
+    if sys.platform == "darwin":
+        return CheckResult("cuda", "SKIP", "macOS 无 CUDA（使用 MPS）")
+    if not _importable("torch"):
+        return CheckResult(
+            "cuda", "FAIL", "未安装 torch，无法使用 NVIDIA GPU",
+            fix="按 docs/GPU.md 安装 CUDA 版依赖（requirements/cuda.txt）",
+        )
+    import torch  # noqa: PLC0415
+
+    if not torch.cuda.is_available():
+        return CheckResult(
+            "cuda", "WARN",
+            f"torch {torch.__version__} 但 CUDA 不可用（将回退 CPU 训练）",
+            fix="确认 NVIDIA 驱动与 torch 的 CUDA 版本匹配：python -c \"import torch; print(torch.version.cuda)\"",
+            data={"torch": torch.__version__, "cuda_build": torch.version.cuda},
+        )
+    index = torch.cuda.current_device()
+    properties = torch.cuda.get_device_properties(index)
+    from .train.precision import cuda_bf16_supported  # noqa: PLC0415 - 保持 doctor 轻量导入
+
+    bf16 = cuda_bf16_supported()
+    detail = (
+        f"{properties.name}（{properties.total_memory / 1024**3:.0f} GB，"
+        f"sm{properties.major}{properties.minor}，CUDA {torch.version.cuda}，"
+        f"bf16={'支持' if bf16 else '不支持→fp16 AMP'}）"
+    )
+    return CheckResult(
+        "cuda", "PASS", detail,
+        data={
+            "torch": torch.__version__,
+            "cuda_build": torch.version.cuda,
+            "device": properties.name,
+            "capability": f"{properties.major}.{properties.minor}",
+            "total_memory_gb": round(properties.total_memory / 1024**3, 1),
+            "bf16_supported": bf16,
+        },
+    )
+
+
 def check_mlx() -> CheckResult:
+    if sys.platform != "darwin":
+        return CheckResult("mlx", "SKIP", f"当前平台 {sys.platform} 不支持 MLX（仅 Apple Silicon）")
     if not _importable("mlx"):
         return CheckResult(
             "mlx", "WARN", "未安装 MLX（可选的 Apple 原生对照后端）",
@@ -175,16 +231,17 @@ def check_mlx() -> CheckResult:
 
 def check_memory() -> CheckResult:
     total_gb = _total_memory_gb()
+    label = "统一内存" if sys.platform == "darwin" else "物理内存"
     if total_gb is None:
         return CheckResult("memory", "WARN", "无法读取物理内存大小")
     if total_gb >= 32:
-        return CheckResult("memory", "PASS", f"统一内存 {total_gb:.0f} GB", data={"total_memory_gb": total_gb})
+        return CheckResult("memory", "PASS", f"{label} {total_gb:.0f} GB", data={"total_memory_gb": total_gb})
     if total_gb >= MEMORY_WARN_GB:
         return CheckResult(
-            "memory", "WARN", f"统一内存 {total_gb:.0f} GB，建议 32 GB 以上以运行 1B 级模型微调",
+            "memory", "WARN", f"{label} {total_gb:.0f} GB，建议 32 GB 以上以运行 1B 级模型微调",
         )
     return CheckResult(
-        "memory", "WARN", f"统一内存仅 {total_gb:.0f} GB，建议使用 sanity 档并跳过 1.7B 微调",
+        "memory", "WARN", f"{label}仅 {total_gb:.0f} GB，建议使用 sanity 档并跳过 1.7B 微调",
         fix="configs 中改用更小模型或减小 batch",
     )
 
@@ -302,26 +359,37 @@ def check_network(network: NetworkConfig, offline: bool = False) -> list[CheckRe
 
 
 def run_checks(config: LabConfig, *, offline: bool = False) -> list[CheckResult]:
-    results = [check_python(), *check_packages(), check_mps(), check_mlx(), check_memory(), check_disk()]
+    results = [
+        check_python(),
+        *check_packages(),
+        check_cuda(),
+        check_mps(),
+        check_mlx(),
+        check_memory(),
+        check_disk(),
+    ]
     results.extend(check_network(config.network, offline=offline))
     return results
 
 
 def overall_status(results: list[CheckResult]) -> Status:
     worst = max((_STATUS_ORDER[result.status] for result in results), default=0)
-    return ["PASS", "WARN", "FAIL"][worst]
+    return ["SKIP", "PASS", "WARN", "FAIL"][worst]
 
 
 def format_report(results: list[CheckResult]) -> str:
     lines = ["bigmodel-lab 环境自检", "=" * 60]
     for result in results:
         lines.append(f"[{result.status:4}] {result.name:<18} {result.detail}")
-        if result.fix and result.status != "PASS":
+        if result.fix and result.status in {"WARN", "FAIL"}:
             lines.append(f"       ↳ 修复建议: {result.fix}")
     status = overall_status(results)
     counts = {status_name: sum(1 for item in results if item.status == status_name) for status_name in _STATUS_ORDER}
     lines.append("=" * 60)
-    lines.append(f"结论: {status}  (PASS {counts['PASS']} / WARN {counts['WARN']} / FAIL {counts['FAIL']})")
+    lines.append(
+        f"结论: {status}  (PASS {counts['PASS']} / WARN {counts['WARN']} / "
+        f"FAIL {counts['FAIL']} / SKIP {counts['SKIP']})"
+    )
     return "\n".join(lines)
 
 

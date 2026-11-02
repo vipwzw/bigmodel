@@ -1,0 +1,31 @@
+# V100 16GB 专用覆盖（与 configs/cuda.yaml 叠加使用）
+#
+# 用法：
+#   .venv/bin/lab run 5 --config configs/cuda.yaml --config configs/cuda-v100.yaml --profile standard
+#
+# V100 特点：sm70，不支持 bf16 → 程序自动走 fp16 autocast + GradScaler；16GB 显存，micro-batch 取 2。
+
+stage5:
+  train:
+    sanity:
+      batch_size: 2
+      grad_accum: 6
+      max_seq_len: 512
+      max_steps: 120
+      learning_rate: 0.0001
+    standard:
+      batch_size: 2
+      grad_accum: 4
+      max_seq_len: 512
+      max_steps: 600
+      learning_rate: 0.0001
+      warmup_steps: 20
+
+  compare:
+    - name: v100_r16
+      lora_r: 16
+      learning_rate: 0.0001
+      max_steps: 600
+
+  export:
+    dir: models/exports/qwen3-0.6b-v100-sft-merged

@@ -1,4 +1,4 @@
-"""Stage 1：环境自检 + MPS/MLX 性能基线 + token 预算校准。"""
+"""Stage 1：环境自检 + GPU（CUDA/MPS）性能基线 + token 预算校准。"""
 
 from __future__ import annotations
 

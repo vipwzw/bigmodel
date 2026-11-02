@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 from ..budget import Budget, BudgetExceeded
 from ..data.chat import build_dpo_example, collate_dpo
 from ..manifest import RunContext
-from ..train.precision import default_device, driver_memory_gb, empty_cache, mps_available, sync
+from ..train.precision import default_device, empty_cache, peak_memory_gb, resolve_device, sync
 from .sft import LoraConfigSpec, apply_lora, generate_responses, load_model_and_tokenizer, parameter_report
 
 logger = logging.getLogger(__name__)
@@ -140,7 +140,7 @@ class DPOTrainer:
         self.config = config
         self.ctx = ctx
         self.budget = budget
-        self.device = config.device if mps_available() else "cpu"
+        self.device = resolve_device(config.device)
         self.train_records = train_records
         self.val_records = val_records
         self.policy = None
@@ -244,7 +244,7 @@ class DPOTrainer:
         if config.quality_prompts:
             self.quality_baseline = generation_quality(self.policy, self.tokenizer, config.quality_prompts, device=self.device, max_new_tokens=config.quality_max_new_tokens)
             logger.info("DPO 初始生成质量基线: %.4f", self.quality_baseline)
-        peak_memory = driver_memory_gb(self.device)
+        peak_memory = peak_memory_gb(self.device)
         started = time.time()
         step = start_step
         tokens_seen = 0
@@ -288,7 +288,7 @@ class DPOTrainer:
             sync(self.device)
             step_seconds = time.perf_counter() - step_started
             tokens_seen += step_tokens
-            peak_memory = max(peak_memory, driver_memory_gb(self.device))
+            peak_memory = max(peak_memory, peak_memory_gb(self.device))
             if not math.isfinite(last_loss):
                 raise RuntimeError(f"DPO 损失非有限值（step={step}, loss={last_loss}）")
             if config.log_every and step % config.log_every == 0:
