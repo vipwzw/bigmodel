@@ -214,12 +214,12 @@ def fig04_merge_tree():
         x2, y2 = pos(child)
         ax.plot([x1, x2], [y1 - 0.045, y2 + 0.045], color="#9AA1AC", lw=1.4, zorder=1, solid_capstyle="round")
 
-    for key, (x, y, label, tid) in leaves.items():
+    for _key, (x, y, label, tid) in leaves.items():
         box(ax, x - 0.036, y - 0.038, 0.072, 0.076, GREEN_L, GREEN, lw=1.2, r=0.012)
         ax.text(x, y + 0.004, label, ha="center", va="center", fontsize=15, color=INK)
         ax.text(x, y - 0.058, f"t{tid}", ha="center", va="center", fontsize=8, color=GRAY)
 
-    for key, (x, y, label, tid, rank, ec, fc) in internals.items():
+    for _key, (x, y, label, tid, rank, ec, fc) in internals.items():
         box(ax, x - 0.075, y - 0.043, 0.15, 0.086, fc, ec, lw=1.4, r=0.014)
         ax.text(x, y + 0.008, label, ha="center", va="center", fontsize=12.5, color=INK)
         ax.text(x, y - 0.027, f"t{tid} · merge #{rank}", ha="center", va="center", fontsize=7.8, color=ec)
@@ -254,7 +254,7 @@ def fig05_encoding():
             widths = [max(len(s) * 0.62, 1) for s in syms]
             total = sum(widths) * unit + (len(syms) - 1) * gap
             x = 0.5 - total / 2
-            for j, (sym, wide) in enumerate(zip(syms, widths)):
+            for j, (sym, wide) in enumerate(zip(syms, widths, strict=False)):
                 color = (RED, RED_L) if (merged_idx is not None and j == merged_idx) else (GRAY, "white")
                 box(ax, x, y - 0.032, wide * unit, 0.064, color[1], color[0], lw=1.3, r=0.012)
                 ax.text(x + wide * unit / 2, y, sym, ha="center", va="center", fontsize=13, color=INK)
@@ -379,7 +379,7 @@ def fig02_bytes():
         ax.text(0.045, y, ch, ha="center", va="center", fontsize=13 if len(ch) > 1 else 15, color=INK)
         ax.text(0.045, y - 0.045, code, ha="center", va="center", fontsize=7.6, color=GRAY)
         x = 0.10
-        for j, (hx, sym) in enumerate(zip(byte_hex, syms)):
+        for j, (hx, _sym) in enumerate(zip(byte_hex, syms, strict=False)):
             fc, ec = (BLUE_L, BLUE) if j == 0 else (ORANGE_L, ORANGE)
             box(ax, x, y - 0.032, 0.070, 0.064, fc, ec, lw=1.2, r=0.010)
             ax.text(x + 0.035, y, hx, ha="center", va="center", fontsize=10.5, family="monospace", color=INK)
