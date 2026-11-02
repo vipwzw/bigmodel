@@ -93,6 +93,8 @@ python scripts/qa_cuda.py --model-path models/exports/qwen3-0.6b-v100-sft-merged
 产物位置：`runs/stage-N/<run-id>/`（配置快照、日志、指标、LoRA 检查点、生成对比）、
 `models/exports/…`（合并后的完整模型）、`runs/qa-cuda/<时间戳>/qa_report.{json,md}`。
 
+> 附：需要更细粒度的 GPU 微基准（fp32/TF32/fp16/bf16 矩阵、显存带宽、频率/功耗、A10 参考峰值）时，可运行 `python scripts/bench_gpu.py`（支持 cuda/mps/cpu，不依赖本项目代码）。
+
 ## 四、V100 实测结果
 
 > 运行时间：2026-11-02；机器：阿里云 PAI-DSW，Tesla V100-SXM2-16GB（ECC 开启，8 vCPU / 31GB RAM）。
