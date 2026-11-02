@@ -15,6 +15,7 @@ from .budget import Budget, BudgetExceeded
 from .config import PROJECT_ROOT, ConfigError, LabConfig, load_config
 from .doctor import format_report, overall_status, report_json, run_checks
 from .manifest import RunContext
+from .risk.cli import register_risk_subparser, run_risk_command
 from .stages import STAGES, format_stage_list, get_stage, run_stage
 
 logger = logging.getLogger("bigmodel_lab")
@@ -70,6 +71,9 @@ def build_parser() -> argparse.ArgumentParser:
     clean_parser.add_argument("--keep", type=int, default=3, help="每个阶段保留最近的 N 次运行")
     clean_parser.add_argument("--runs-dir", default=None, help="实验目录（默认项目 runs/）")
     clean_parser.add_argument("--apply", action="store_true", help="真正执行删除（默认仅打印计划）")
+
+    risk_parser = sub.add_parser("risk", help="交易签名风险审查应用实验（data/review/train/eval）")
+    register_risk_subparser(risk_parser)
 
     return parser
 
@@ -341,6 +345,8 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_doctor(args)
         if args.command == "run":
             return _cmd_run(args)
+        if args.command == "risk":
+            return run_risk_command(args)
     except ConfigError as exc:
         print(f"配置错误: {exc}", file=sys.stderr)
         return 2

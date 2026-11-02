@@ -41,6 +41,7 @@ uv sync --all-groups          # 已含 torch / transformers / peft / mlx / mlx-l
 
 ## 理论册、实验与总复盘
 
+- [risk-review.md](risk-review.md)：**应用实验：交易签名风险审查**——签名前的解码/模拟/能力与暴露分析、规则 + Qwen3 小模型分级决策、币安 EIP-7702 事件回归用例与评测门禁（不属于 8 个基础阶段）。
 - [QA_EXPERIMENT.md](QA_EXPERIMENT.md)：**训练一个语言模型并提问**——SFT 训练过程、真实问答记录、能力评估与原理分析。
 - [PRINCIPLES.md](PRINCIPLES.md)：**原理与实测**——每个阶段背后的机器学习机制、公式推导，以及用本仓库真实数据做的验证。
 - [CAPSTONE.md](CAPSTONE.md)：实测数据汇总、工程踩坑、本机限制与迁移生产环境的路径。

@@ -1,0 +1,2170 @@
+{
+  "fixture_version": 1,
+  "name": "binance_7702_hot_wallet_2026_10_30",
+  "source": "基于 2026-10-30 币安热钱包 EIP-7702 事件公开复盘的结构化模拟（合成数据）",
+  "event_date": "2026-10-30",
+  "amount_reference_usd": 6300000000,
+  "license": "CC-BY-4.0（仅用于教学与安全研究）",
+  "disclaimer": "不含真实私钥、真实攻击交易哈希或真实个人数据；地址、金额、nonce、目标合约与服务账号名均为合成占位符或公开口径的近似值。",
+  "key_features": [
+    "EIP-7702 委托授权（账户执行权让渡）",
+    "连续 nonce 批量签发",
+    "全部资产暴露（exposure_ratio = 1.0）",
+    "无审批凭证（approval = null）",
+    "服务账号/内部容器来源（service account origin）",
+    "新部署目标合约（contract_age_days = 0）",
+    "期望决策 BLOCK"
+  ],
+  "original": {
+    "schema_version": 1,
+    "sample_id": "binance-7702-original",
+    "request": {
+      "schema_version": 1,
+      "request_id": "req-binance-7702-original",
+      "timestamp": "2026-10-30T03:20:00Z",
+      "account": "0x5d2b08fa9f6506bc70ad902d0cdd35a64387238f",
+      "chain": "ethereum",
+      "kind": "eip7702_authorization",
+      "payload": {
+        "source": "binance_incident_replay",
+        "scenario_family": "eip7702_delegation",
+        "instance_id": "binance-7702-original",
+        "seed": 0,
+        "positive": true,
+        "regression_gate": true,
+        "operation_kinds": [
+          "eip7702_authorization"
+        ],
+        "binance_case": "original",
+        "split_policy": "test_only",
+        "event_date": "2026-10-30",
+        "authorization_type": "eip7702",
+        "delegate_contract": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+        "nonce_start": 424200,
+        "consecutive_nonce_count": 50,
+        "authorizations": [
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424200
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424201
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424202
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424203
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424204
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424205
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424206
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424207
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424208
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424209
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424210
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424211
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424212
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424213
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424214
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424215
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424216
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424217
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424218
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424219
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424220
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424221
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424222
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424223
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424224
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424225
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424226
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424227
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424228
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424229
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424230
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424231
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424232
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424233
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424234
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424235
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424236
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424237
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424238
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424239
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424240
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424241
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424242
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424243
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424244
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424245
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424246
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424247
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424248
+          },
+          {
+            "address": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+            "chain": "ethereum",
+            "chain_id": 1,
+            "nonce": 424249
+          }
+        ]
+      },
+      "operations": [
+        {
+          "kind": "eip7702_authorization",
+          "chain": "ethereum",
+          "account": "0x5d2b08fa9f6506bc70ad902d0cdd35a64387238f",
+          "target": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+          "token": null,
+          "amount": null,
+          "amount_usd": null,
+          "allowance": null,
+          "unlimited_allowance": false,
+          "new_owner": null,
+          "implementation": null,
+          "delegate": "0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+          "nonce": 424200,
+          "nonce_span": 50,
+          "batch_size": 50,
+          "metadata": {
+            "authorization_type": "eip7702",
+            "nonce_start": 424200,
+            "nonce_end": 424249,
+            "consecutive_nonce_count": 50
+          }
+        }
+      ],
+      "context": {
+        "origin": "svc-container-07@internal-signer",
+        "timestamp": "2026-10-30T03:20:00Z",
+        "operator": "svc-devops-runner",
+        "channel": "internal-api",
+        "ip": "10.24.7.13",
+        "account_role": "hot_wallet",
+        "approval": null,
+        "notes": null,
+        "ui_text": null,
+        "allowlist": [],
+        "known_counterparties": [],
+        "preapproved_contracts": []
+      },
+      "world": {
+        "chains": {
+          "ethereum": {
+            "chain": "ethereum",
+            "balances": {
+              "ETH": 1000000.0,
+              "USDT": 1800000000.0,
+              "USDC": 600000000.0,
+              "WBTC": 10000.0,
+              "BNB": 800000.0
+            },
+            "prices_usd": {
+              "ETH": 2500.0,
+              "USDT": 1.0,
+              "USDC": 1.0,
+              "WBTC": 90000.0,
+              "BNB": 600.0
+            },
+            "allowances": [],
+            "authority": {
+              "owner": null,
+              "pending_owner": null,
+              "admin": null,
+              "delegate": null,
+              "implementation": null,
+              "modules": [],
+              "guardians": []
+            },
+            "code_hashes": {
+              "0xedf8e96519fe17e66a72fd048f4ce23df29c5166": "0x9bb4899ee02d7cf159902a3efa49b859776da4fa559a1776607359fef6a7057a"
+            },
+            "contract_age_days": {
+              "0xedf8e96519fe17e66a72fd048f4ce23df29c5166": 0,
+              "0x3110eebd7992b612b32aa19b17c74f3baaf2612e": 220
+            },
+            "nonce": 424200
+          }
+        }
+      },
+      "history": [
+        {
+          "timestamp": "2026-10-30T01:45:00Z",
+          "action_type": "native_transfer",
+          "target": "0x781c47779a258715629182c32c39e7418b1a5b51",
+          "amount_usd": 18500.0,
+          "exposure_ratio": 0.0,
+          "origin": "ops-console@internal",
+          "decision": "ALLOW"
+        },
+        {
+          "timestamp": "2026-10-30T02:20:00Z",
+          "action_type": "erc20_transfer",
+          "target": "0x7ca37b686b8b34030cd0f607bcaae3e59e657e69",
+          "amount_usd": 250000.0,
+          "exposure_ratio": 0.0,
+          "origin": "ops-console@internal",
+          "decision": "ALLOW"
+        },
+        {
+          "timestamp": "2026-10-30T02:55:00Z",
+          "action_type": "native_transfer",
+          "target": "0xb7d7d91f6b5e80f9fae0569dc2ba4afd974117f8",
+          "amount_usd": 480000.0,
+          "exposure_ratio": 0.0,
+          "origin": "ops-console@internal",
+          "decision": "ALLOW"
+        }
+      ]
+    },
+    "label": {
+      "action_type": "eip7702_authorization",
+      "capability_delta": "full_control",
+      "exposure_ratio": 1.0,
+      "risk_level": "critical",
+      "expected_decision": "BLOCK",
+      "scenario_family": "eip7702_delegation",
+      "risk_factors": [
+        "eip7702_delegation",
+        "irreversible_action",
+        "full_control_grant",
+        "batch_nonce_span",
+        "consecutive_nonce_count=50",
+        "no_approval_ticket",
+        "service_account_origin",
+        "new_contract",
+        "exposure_100pct"
+      ],
+      "evidence": [
+        "operation.kind=eip7702_authorization",
+        "operation.target=0xedf8e96519fe17e66a72fd048f4ce23df29c5166",
+        "operation.nonce_span=50",
+        "context.origin=svc-container-07@internal-signer",
+        "context.approval=None",
+        "world.chains.ethereum.contract_age_days[0xedf8e96519fe17e66a72fd048f4ce23df29c5166]=0",
+        "label.exposure_ratio=1.0",
+        "capability_delta=full_control",
+        "label.exposure_ratio=1.000000",
+        "capability_delta=full_control"
+      ]
+    }
+  },
+  "variants": [
+    {
+      "schema_version": 1,
+      "sample_id": "binance-7702-variant-1",
+      "request": {
+        "schema_version": 1,
+        "request_id": "req-binance-7702-variant-1",
+        "timestamp": "2026-10-30T03:25:00Z",
+        "account": "0x01d3a7412b0c259c0cea81f46f329f1cfe4b6f2f",
+        "chain": "ethereum",
+        "kind": "eip7702_authorization",
+        "payload": {
+          "source": "binance_incident_replay",
+          "scenario_family": "eip7702_delegation",
+          "instance_id": "binance-7702-variant-1",
+          "seed": 0,
+          "positive": true,
+          "regression_gate": false,
+          "operation_kinds": [
+            "eip7702_authorization"
+          ],
+          "binance_case": "variant-1",
+          "split_policy": "normal",
+          "event_date": "2026-10-30",
+          "authorization_type": "eip7702",
+          "delegate_contract": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+          "nonce_start": 508800,
+          "consecutive_nonce_count": 50,
+          "authorizations": [
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508800
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508801
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508802
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508803
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508804
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508805
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508806
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508807
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508808
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508809
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508810
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508811
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508812
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508813
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508814
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508815
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508816
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508817
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508818
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508819
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508820
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508821
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508822
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508823
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508824
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508825
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508826
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508827
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508828
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508829
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508830
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508831
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508832
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508833
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508834
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508835
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508836
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508837
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508838
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508839
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508840
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508841
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508842
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508843
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508844
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508845
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508846
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508847
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508848
+            },
+            {
+              "address": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 508849
+            }
+          ]
+        },
+        "operations": [
+          {
+            "kind": "eip7702_authorization",
+            "chain": "ethereum",
+            "account": "0x01d3a7412b0c259c0cea81f46f329f1cfe4b6f2f",
+            "target": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+            "token": null,
+            "amount": null,
+            "amount_usd": null,
+            "allowance": null,
+            "unlimited_allowance": false,
+            "new_owner": null,
+            "implementation": null,
+            "delegate": "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+            "nonce": 508800,
+            "nonce_span": 50,
+            "batch_size": 50,
+            "metadata": {
+              "authorization_type": "eip7702",
+              "nonce_start": 508800,
+              "nonce_end": 508849,
+              "consecutive_nonce_count": 50
+            }
+          }
+        ],
+        "context": {
+          "origin": "svc-container-11@internal-signer",
+          "timestamp": "2026-10-30T03:25:00Z",
+          "operator": "svc-devops-runner",
+          "channel": "internal-api",
+          "ip": "10.24.7.13",
+          "account_role": "hot_wallet",
+          "approval": null,
+          "notes": null,
+          "ui_text": null,
+          "allowlist": [],
+          "known_counterparties": [],
+          "preapproved_contracts": []
+        },
+        "world": {
+          "chains": {
+            "ethereum": {
+              "chain": "ethereum",
+              "balances": {
+                "ETH": 1000000.0,
+                "USDT": 1800000000.0,
+                "USDC": 600000000.0,
+                "WBTC": 10000.0,
+                "BNB": 800000.0
+              },
+              "prices_usd": {
+                "ETH": 2500.0,
+                "USDT": 1.0,
+                "USDC": 1.0,
+                "WBTC": 90000.0,
+                "BNB": 600.0
+              },
+              "allowances": [],
+              "authority": {
+                "owner": null,
+                "pending_owner": null,
+                "admin": null,
+                "delegate": null,
+                "implementation": null,
+                "modules": [],
+                "guardians": []
+              },
+              "code_hashes": {
+                "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3": "0x1c5633f39739d5253ed964aedd78301ce7912fb2f3f4d3d70467e30686c91788"
+              },
+              "contract_age_days": {
+                "0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3": 0,
+                "0x3110eebd7992b612b32aa19b17c74f3baaf2612e": 220
+              },
+              "nonce": 508800
+            }
+          }
+        },
+        "history": [
+          {
+            "timestamp": "2026-10-30T01:50:00Z",
+            "action_type": "native_transfer",
+            "target": "0x781c47779a258715629182c32c39e7418b1a5b51",
+            "amount_usd": 18500.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          },
+          {
+            "timestamp": "2026-10-30T02:25:00Z",
+            "action_type": "erc20_transfer",
+            "target": "0x7ca37b686b8b34030cd0f607bcaae3e59e657e69",
+            "amount_usd": 250000.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          },
+          {
+            "timestamp": "2026-10-30T03:00:00Z",
+            "action_type": "native_transfer",
+            "target": "0xb7d7d91f6b5e80f9fae0569dc2ba4afd974117f8",
+            "amount_usd": 480000.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          }
+        ]
+      },
+      "label": {
+        "action_type": "eip7702_authorization",
+        "capability_delta": "full_control",
+        "exposure_ratio": 1.0,
+        "risk_level": "critical",
+        "expected_decision": "BLOCK",
+        "scenario_family": "eip7702_delegation",
+        "risk_factors": [
+          "eip7702_delegation",
+          "irreversible_action",
+          "full_control_grant",
+          "batch_nonce_span",
+          "consecutive_nonce_count=50",
+          "no_approval_ticket",
+          "service_account_origin",
+          "new_contract",
+          "exposure_100pct"
+        ],
+        "evidence": [
+          "operation.kind=eip7702_authorization",
+          "operation.target=0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3",
+          "operation.nonce_span=50",
+          "context.origin=svc-container-11@internal-signer",
+          "context.approval=None",
+          "world.chains.ethereum.contract_age_days[0x8bf6b13a53ba5f18570e81ac1d8ad72ce2d98ec3]=0",
+          "label.exposure_ratio=1.0",
+          "capability_delta=full_control",
+          "label.exposure_ratio=1.000000",
+          "capability_delta=full_control"
+        ]
+      }
+    },
+    {
+      "schema_version": 1,
+      "sample_id": "binance-7702-variant-2",
+      "request": {
+        "schema_version": 1,
+        "request_id": "req-binance-7702-variant-2",
+        "timestamp": "2026-10-30T03:30:00Z",
+        "account": "0xa98c0c9d050328c3c43e37d5e11941e703cb6727",
+        "chain": "ethereum",
+        "kind": "eip7702_authorization",
+        "payload": {
+          "source": "binance_incident_replay",
+          "scenario_family": "eip7702_delegation",
+          "instance_id": "binance-7702-variant-2",
+          "seed": 0,
+          "positive": true,
+          "regression_gate": false,
+          "operation_kinds": [
+            "eip7702_authorization"
+          ],
+          "binance_case": "variant-2",
+          "split_policy": "normal",
+          "event_date": "2026-10-30",
+          "authorization_type": "eip7702",
+          "delegate_contract": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+          "nonce_start": 312500,
+          "consecutive_nonce_count": 62,
+          "authorizations": [
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312500
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312501
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312502
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312503
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312504
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312505
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312506
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312507
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312508
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312509
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312510
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312511
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312512
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312513
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312514
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312515
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312516
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312517
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312518
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312519
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312520
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312521
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312522
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312523
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312524
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312525
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312526
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312527
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312528
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312529
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312530
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312531
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312532
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312533
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312534
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312535
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312536
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312537
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312538
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312539
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312540
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312541
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312542
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312543
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312544
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312545
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312546
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312547
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312548
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312549
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312550
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312551
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312552
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312553
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312554
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312555
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312556
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312557
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312558
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312559
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312560
+            },
+            {
+              "address": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 312561
+            }
+          ]
+        },
+        "operations": [
+          {
+            "kind": "eip7702_authorization",
+            "chain": "ethereum",
+            "account": "0xa98c0c9d050328c3c43e37d5e11941e703cb6727",
+            "target": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+            "token": null,
+            "amount": null,
+            "amount_usd": null,
+            "allowance": null,
+            "unlimited_allowance": false,
+            "new_owner": null,
+            "implementation": null,
+            "delegate": "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+            "nonce": 312500,
+            "nonce_span": 62,
+            "batch_size": 62,
+            "metadata": {
+              "authorization_type": "eip7702",
+              "nonce_start": 312500,
+              "nonce_end": 312561,
+              "consecutive_nonce_count": 62
+            }
+          }
+        ],
+        "context": {
+          "origin": "svc-devops-runner-02@internal-signer",
+          "timestamp": "2026-10-30T03:30:00Z",
+          "operator": "svc-devops-runner",
+          "channel": "internal-api",
+          "ip": "10.24.7.13",
+          "account_role": "hot_wallet",
+          "approval": null,
+          "notes": null,
+          "ui_text": null,
+          "allowlist": [],
+          "known_counterparties": [],
+          "preapproved_contracts": []
+        },
+        "world": {
+          "chains": {
+            "ethereum": {
+              "chain": "ethereum",
+              "balances": {
+                "ETH": 1060000.0,
+                "USDT": 1908000000.0,
+                "USDC": 636000000.0,
+                "WBTC": 10600.0,
+                "BNB": 848000.0
+              },
+              "prices_usd": {
+                "ETH": 2500.0,
+                "USDT": 1.0,
+                "USDC": 1.0,
+                "WBTC": 90000.0,
+                "BNB": 600.0
+              },
+              "allowances": [],
+              "authority": {
+                "owner": null,
+                "pending_owner": null,
+                "admin": null,
+                "delegate": null,
+                "implementation": null,
+                "modules": [],
+                "guardians": []
+              },
+              "code_hashes": {
+                "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41": "0x18141ef8aac7c578879f3cc414c9f54ec5fd39c2a09490906acb0c0ec94f003c"
+              },
+              "contract_age_days": {
+                "0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41": 0,
+                "0x3110eebd7992b612b32aa19b17c74f3baaf2612e": 220
+              },
+              "nonce": 312500
+            }
+          }
+        },
+        "history": [
+          {
+            "timestamp": "2026-10-30T01:55:00Z",
+            "action_type": "native_transfer",
+            "target": "0x781c47779a258715629182c32c39e7418b1a5b51",
+            "amount_usd": 18500.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          },
+          {
+            "timestamp": "2026-10-30T02:30:00Z",
+            "action_type": "erc20_transfer",
+            "target": "0x7ca37b686b8b34030cd0f607bcaae3e59e657e69",
+            "amount_usd": 250000.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          },
+          {
+            "timestamp": "2026-10-30T03:05:00Z",
+            "action_type": "native_transfer",
+            "target": "0xb7d7d91f6b5e80f9fae0569dc2ba4afd974117f8",
+            "amount_usd": 480000.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          }
+        ]
+      },
+      "label": {
+        "action_type": "eip7702_authorization",
+        "capability_delta": "full_control",
+        "exposure_ratio": 1.0,
+        "risk_level": "critical",
+        "expected_decision": "BLOCK",
+        "scenario_family": "eip7702_delegation",
+        "risk_factors": [
+          "eip7702_delegation",
+          "irreversible_action",
+          "full_control_grant",
+          "batch_nonce_span",
+          "consecutive_nonce_count=62",
+          "no_approval_ticket",
+          "service_account_origin",
+          "new_contract",
+          "exposure_100pct"
+        ],
+        "evidence": [
+          "operation.kind=eip7702_authorization",
+          "operation.target=0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41",
+          "operation.nonce_span=62",
+          "context.origin=svc-devops-runner-02@internal-signer",
+          "context.approval=None",
+          "world.chains.ethereum.contract_age_days[0x3ed710d8e216c2b0ac4cfed3a147780fa1281a41]=0",
+          "label.exposure_ratio=1.0",
+          "capability_delta=full_control",
+          "label.exposure_ratio=1.000000",
+          "capability_delta=full_control"
+        ]
+      }
+    },
+    {
+      "schema_version": 1,
+      "sample_id": "binance-7702-variant-3",
+      "request": {
+        "schema_version": 1,
+        "request_id": "req-binance-7702-variant-3",
+        "timestamp": "2026-10-30T03:35:00Z",
+        "account": "0x4ff38070796b7797eb62a6148e1eb9a497bed39c",
+        "chain": "ethereum",
+        "kind": "eip7702_authorization",
+        "payload": {
+          "source": "binance_incident_replay",
+          "scenario_family": "eip7702_delegation",
+          "instance_id": "binance-7702-variant-3",
+          "seed": 0,
+          "positive": true,
+          "regression_gate": false,
+          "operation_kinds": [
+            "eip7702_authorization"
+          ],
+          "binance_case": "variant-3",
+          "split_policy": "normal",
+          "event_date": "2026-10-30",
+          "authorization_type": "eip7702",
+          "delegate_contract": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+          "nonce_start": 640100,
+          "consecutive_nonce_count": 48,
+          "authorizations": [
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640100
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640101
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640102
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640103
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640104
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640105
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640106
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640107
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640108
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640109
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640110
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640111
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640112
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640113
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640114
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640115
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640116
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640117
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640118
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640119
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640120
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640121
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640122
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640123
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640124
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640125
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640126
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640127
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640128
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640129
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640130
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640131
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640132
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640133
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640134
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640135
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640136
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640137
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640138
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640139
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640140
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640141
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640142
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640143
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640144
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640145
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640146
+            },
+            {
+              "address": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+              "chain": "ethereum",
+              "chain_id": 1,
+              "nonce": 640147
+            }
+          ]
+        },
+        "operations": [
+          {
+            "kind": "eip7702_authorization",
+            "chain": "ethereum",
+            "account": "0x4ff38070796b7797eb62a6148e1eb9a497bed39c",
+            "target": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+            "token": null,
+            "amount": null,
+            "amount_usd": null,
+            "allowance": null,
+            "unlimited_allowance": false,
+            "new_owner": null,
+            "implementation": null,
+            "delegate": "0xfdcac54c431912db85267d2cb12d09c611ecf093",
+            "nonce": 640100,
+            "nonce_span": 48,
+            "batch_size": 48,
+            "metadata": {
+              "authorization_type": "eip7702",
+              "nonce_start": 640100,
+              "nonce_end": 640147,
+              "consecutive_nonce_count": 48
+            }
+          }
+        ],
+        "context": {
+          "origin": "svc-container-03@internal-signer",
+          "timestamp": "2026-10-30T03:35:00Z",
+          "operator": "svc-devops-runner",
+          "channel": "internal-api",
+          "ip": "10.24.7.13",
+          "account_role": "hot_wallet",
+          "approval": null,
+          "notes": null,
+          "ui_text": null,
+          "allowlist": [],
+          "known_counterparties": [],
+          "preapproved_contracts": []
+        },
+        "world": {
+          "chains": {
+            "ethereum": {
+              "chain": "ethereum",
+              "balances": {
+                "ETH": 940000.0,
+                "USDT": 1692000000.0,
+                "USDC": 564000000.0,
+                "WBTC": 9400.0,
+                "BNB": 752000.0
+              },
+              "prices_usd": {
+                "ETH": 2500.0,
+                "USDT": 1.0,
+                "USDC": 1.0,
+                "WBTC": 90000.0,
+                "BNB": 600.0
+              },
+              "allowances": [],
+              "authority": {
+                "owner": null,
+                "pending_owner": null,
+                "admin": null,
+                "delegate": null,
+                "implementation": null,
+                "modules": [],
+                "guardians": []
+              },
+              "code_hashes": {
+                "0xfdcac54c431912db85267d2cb12d09c611ecf093": "0x065d3ef5dc858594736a2a7a514672e1acb7707b2a282d524cc4511022f04e4c"
+              },
+              "contract_age_days": {
+                "0xfdcac54c431912db85267d2cb12d09c611ecf093": 0,
+                "0x3110eebd7992b612b32aa19b17c74f3baaf2612e": 220
+              },
+              "nonce": 640100
+            }
+          }
+        },
+        "history": [
+          {
+            "timestamp": "2026-10-30T02:00:00Z",
+            "action_type": "native_transfer",
+            "target": "0x781c47779a258715629182c32c39e7418b1a5b51",
+            "amount_usd": 18500.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          },
+          {
+            "timestamp": "2026-10-30T02:35:00Z",
+            "action_type": "erc20_transfer",
+            "target": "0x7ca37b686b8b34030cd0f607bcaae3e59e657e69",
+            "amount_usd": 250000.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          },
+          {
+            "timestamp": "2026-10-30T03:10:00Z",
+            "action_type": "native_transfer",
+            "target": "0xb7d7d91f6b5e80f9fae0569dc2ba4afd974117f8",
+            "amount_usd": 480000.0,
+            "exposure_ratio": 0.0,
+            "origin": "ops-console@internal",
+            "decision": "ALLOW"
+          }
+        ]
+      },
+      "label": {
+        "action_type": "eip7702_authorization",
+        "capability_delta": "full_control",
+        "exposure_ratio": 1.0,
+        "risk_level": "critical",
+        "expected_decision": "BLOCK",
+        "scenario_family": "eip7702_delegation",
+        "risk_factors": [
+          "eip7702_delegation",
+          "irreversible_action",
+          "full_control_grant",
+          "batch_nonce_span",
+          "consecutive_nonce_count=48",
+          "no_approval_ticket",
+          "service_account_origin",
+          "new_contract",
+          "exposure_100pct"
+        ],
+        "evidence": [
+          "operation.kind=eip7702_authorization",
+          "operation.target=0xfdcac54c431912db85267d2cb12d09c611ecf093",
+          "operation.nonce_span=48",
+          "context.origin=svc-container-03@internal-signer",
+          "context.approval=None",
+          "world.chains.ethereum.contract_age_days[0xfdcac54c431912db85267d2cb12d09c611ecf093]=0",
+          "label.exposure_ratio=1.0",
+          "capability_delta=full_control",
+          "label.exposure_ratio=1.000000",
+          "capability_delta=full_control"
+        ]
+      }
+    }
+  ]
+}

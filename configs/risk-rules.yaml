@@ -1,0 +1,50 @@
+# 签名审查规则/阈值/白名单。
+# 规则版本独立于流水线配置，任何阈值变更都必须提升 version 并进入评测报告。
+rules:
+  version: risk-rules-v1
+
+  # 不可逆操作：默认禁止自动签名，必须预登记 + 多签/带外确认
+  irreversible_actions:
+    - eip7702_authorization
+    - ownership_change
+    - proxy_upgrade
+
+  # 空表示只依赖请求上下文中的 allowlist；可按地址追加
+  allowlist: []
+
+  thresholds:
+    # 暴露比例分档（相对账户净值）
+    allow_max: 0.01
+    step_up_dual_max: 0.05
+    step_up_multisig_max: 0.20
+    block_above: 0.50
+    # 滚动窗口累计暴露
+    rolling_window_hours: 24
+    rolling_step_up: 0.20
+    rolling_block: 0.50
+    # 批量 nonce 跨度
+    batch_nonce_warn: 1
+    batch_nonce_block: 10
+    # 新合约/新对手方观察期
+    new_contract_days: 7
+    # 单笔大额阈值（USD）
+    large_amount_usd: 1000000.0
+
+  # 外部不可信文本中的注入特征（命中只标记可疑，不直接决定风险等级）
+  suspicious_text_patterns:
+    - "忽略.*(规则|审查|风险)"
+    - "(ignore|disregard).*(previous|above|rules|instructions)"
+    - "判定为安全|标记为安全|approved\\s+by\\s+admin"
+    - "system\\s*prompt|你现在是"
+
+  enabled:
+    - irreversible_action
+    - exposure_threshold
+    - rolling_exposure
+    - batch_nonce
+    - new_contract
+    - allowlist
+    - approval_ticket
+    - origin_anomaly
+    - untrusted_text
+    - invalid_request
