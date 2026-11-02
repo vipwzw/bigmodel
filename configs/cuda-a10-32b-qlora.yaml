@@ -1,0 +1,72 @@
+# A10 24GB：Qwen3-32B（4bit QLoRA）——极限档，预计 20–22GB，可能 OOM
+#
+# 磁盘说明：32B 原始权重约 65GB，本机 /mnt/workspace 只剩 34GB，因此模型放在 /tmp/Qwen3-32B
+# （/tmp 有 131GB 空闲；实例重启会丢，但本档只做可行性验证）。
+#
+# 用法：
+#   .venv/bin/lab run 5 --config configs/cuda-a10-32b-qlora.yaml --profile standard
+#   python scripts/qa_cuda.py --model-path /tmp/Qwen3-32B --quantization 4bit \
+#       --adapter runs/stage-5/<run>/artifacts/adapter_a10_32b_qlora --out-dir runs/qa-cuda/32b
+#
+# 这是「能不能跑」的验证档（5 步、seq 128、bs1、跳过 fp32 cast）：不追求效果，只记录峰值显存/吞吐与是否 OOM。
+data:
+  resources:
+    qwen3_32b:
+      source: modelscope
+      repo_type: model
+      repo_id: Qwen/Qwen3-32B
+      files: ["*.json", "*.safetensors", "*.txt", "*.model"]
+      text_field: null
+      language: zh
+      license: Apache-2.0（Qwen3-32B）
+      approx_size_gb: 65.0
+      dest: /tmp/Qwen3-32B
+
+stage5:
+  base_model_key: qwen3_32b
+  advance_model_key: qwen3_17b
+  instruction_dir: data/processed/stage3/instruction/sft_zh
+  tokenizer_dir: /tmp/Qwen3-32B
+  # 32B 加载一次约 6–8 分钟，关闭清单检查节省一次加载（也可降低 OOM 风险）
+  inventory: false
+
+  # 极限档：只训 q/v 投影、r=8，可训练参数从 134M 降到 ~10M，优化器状态省约 1.5GB
+  lora:
+    r: 8
+    alpha: 16
+    dropout: 0.05
+    target_modules: [q_proj, v_proj]
+
+  train:
+    standard:
+      max_samples: 200
+      val_samples: 20
+      max_steps: 5
+      batch_size: 1
+      grad_accum: 2
+      max_seq_len: 96
+      learning_rate: 0.0001
+      warmup_steps: 2
+      log_every: 1
+      eval_every: 5
+      eval_batches: 1
+      save_every: 0
+      base_dtype: bfloat16
+      quantization: 4bit
+      quantization_fp32_cast: false  # 省约 3GB：24GB 上跑 32B 的关键
+      gradient_checkpointing: true
+      attn_implementation: flash_attention_2
+
+  compare:
+    - name: a10_32b_qlora
+      lora_r: 8
+      learning_rate: 0.0001
+      max_steps: 5
+
+  # 24GB 无法同时放两份 32B 4bit，关闭生成对比；训练后单独用 qa_cuda.py 验证
+  generation:
+    enabled: false
+    prompts: []
+
+  export:
+    dir: /tmp/qwen3-32b-a10-qlora

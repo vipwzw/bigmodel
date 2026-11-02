@@ -77,6 +77,7 @@ class SFTConfig:
     # 基座载入 dtype；None 表示沿用旧行为（fp32 主权重 + autocast）
     dtype: str | None = None
     quantization: str | None = None  # "4bit"（QLoRA）/ "8bit" / None
+    quantization_fp32_cast: bool = True  # False = 跳过 kbit 准备里的 fp32 cast（32B 等极限档省显存）
     gradient_checkpointing: bool = False
     attn_implementation: str | None = None  # "sdpa" / "flash_attention_2"
     autocast: bool = True
@@ -297,10 +298,19 @@ class SFTTrainer:
             self.model = base_model
             self.tokenizer = tokenizer
         if self.config.quantization:
-            # QLoRA：把 bnb 量化模型转成可训练（冻结基座、cast 非量化层、开启输入梯度）
-            from peft import prepare_model_for_kbit_training  # noqa: PLC0415
+            if self.config.quantization_fp32_cast:
+                # QLoRA 默认路径：冻结基座、cast 非量化层到 fp32、开启输入梯度
+                from peft import prepare_model_for_kbit_training  # noqa: PLC0415
 
-            self.model = prepare_model_for_kbit_training(self.model, use_gradient_checkpointing=False)
+                self.model = prepare_model_for_kbit_training(self.model, use_gradient_checkpointing=False)
+            else:
+                # 极限档（如 24GB 上的 32B QLoRA）：跳过 fp32 cast，保持 bf16 冻结基座以省约 3GB
+                for _, parameter in self.model.named_parameters():
+                    parameter.requires_grad = False
+                enable_input_grads = getattr(self.model, "enable_input_require_grads", None)
+                if enable_input_grads is not None:
+                    enable_input_grads()
+                logger.info("QLoRA 准备：跳过 fp32 cast（省显存模式，基座保持 bf16 冻结）")
         peft_model = apply_lora(self.model, self.config.lora)
         # 量化模型用 device_map 载入，不能再 .to()，否则 transformers 会报错
         self.model = peft_model if self.config.quantization else peft_model.to(self.device)

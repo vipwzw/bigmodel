@@ -31,6 +31,7 @@ def test_default_memory_options_preserve_old_behavior():
     assert config.dtype is None
     assert config.base_dtype_name() == "float32"
     assert config.quantization is None
+    assert config.quantization_fp32_cast is True
     assert config.gradient_checkpointing is False
     assert config.attn_implementation is None
 

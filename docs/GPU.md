@@ -211,20 +211,21 @@ A10 24GB 上能调多大的 Qwen，取决于「权重 + 激活 + 优化器」三
 | Qwen3-0.6B（省内存） | bf16 + checkpointing + sdpa，同 batch | **3.65 GB（-65%）** | 930 tok/s | 60 步，val 2.6482→2.0427 |
 | **Qwen3-4B** | bf16 + checkpointing + FA2，bs1×ga8×seq512 | **9.16 GB** | 353 tok/s | 60 步，val 3.0803→1.5571（可训练 33.0M，0.81%） |
 | **Qwen3-14B（QLoRA）** | bf16 载入 + **4bit** + checkpointing + FA2，bs1×ga8×seq512 | **15.9 GB** | 140 tok/s | 20 步，val 2.0746→1.3019（可训练 64.2M，0.78%） |
+| **Qwen3-32B（QLoRA 极限档）** | bf16 + 4bit + 跳过 fp32 cast + ckpt + FA2，**r8/q,v**，bs1×ga2×seq96 | **19.8 GB** | 33 tok/s | 5 步验证（val 1.594→1.594；只验证链路） |
 
 > 0.6B 省内存档把峰值从 10.5GB 压到 3.65GB（同样的 batch/seq），代价是吞吐从 1,677 降到 930 tok/s；
 > 4B 与 14B 都在 24GB 内真实完成训练并导出 adapter，说明这套开关在 A10 上可用。
 >
 > 推理侧实测（10 条固定问题，批量生成）：0.6B **127.9** tokens/s；4B（bf16）**122.1** tokens/s、总 92.9s；
-> 14B（4bit）**20.5** tokens/s、总 130.1s（反量化开销，比 4B 慢约 6 倍）。问答全文见
-> [GPU_QA.md](GPU_QA.md) 第五~七节。
+> 14B（4bit）**20.5** tokens/s、总 130.1s；32B（4bit）**13.0** tokens/s、总 352.8s。
+> 问答全文见 [GPU_QA.md](GPU_QA.md) 第五~八节。
 
 ### 5.2 容量上限（A10 24GB，按实测外推）
 
 | 方式 | 推荐 | 极限 | 说明 |
 |---|---|---|---|
 | bf16 LoRA | **Qwen3-4B**（实测 9.2GB） | Qwen3-8B（约 18–20GB，需 checkpointing + bs1） | 14B bf16 权重就 28GB，放不下 |
-| **QLoRA 4bit** | **Qwen3-14B**（实测 15.9GB） | Qwen3-32B（约 22–24GB，seq 512/bs1） | 量化基座不能合并导出，推理用基座+adapter |
+| **QLoRA 4bit** | **Qwen3-14B**（实测 15.9GB，质量档） | **Qwen3-32B（实测 19.8GB 可跑通）** | 32B 需 r8/q,v + seq≤128 + 跳过 fp32 cast + expandable_segments，只能验证链路、质量不可用 |
 | 全参微调 | Qwen3-0.6B | Qwen3-1.7B（需 8bit Adam + checkpointing，边缘） | 优化器状态是大头 |
 
 ### 5.3 用法
@@ -241,6 +242,12 @@ python scripts/qa_cuda.py --model-path models/exports/qwen3-4b-a10-sft-merged --
 .venv/bin/lab run 5 --config configs/cuda-a10-14b-qlora.yaml --profile standard
 python scripts/qa_cuda.py --model-path models/Qwen3-14B --quantization 4bit \
     --adapter runs/stage-5/<run>/artifacts/adapter_a10_14b_qlora --out-dir runs/qa-cuda/14b
+
+# 32B 4bit QLoRA 极限档（模型 65GB 放 /tmp；仅验证能跑通）
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
+    .venv/bin/lab run 5 --config configs/cuda-a10-32b-qlora.yaml --profile standard
+python scripts/qa_cuda.py --model-path /tmp/Qwen3-32B --quantization 4bit \
+    --adapter runs/stage-5/<run>/artifacts/adapter_a10_32b_qlora --out-dir runs/qa-cuda/32b
 ```
 
 ### 5.4 踩坑与限制
@@ -251,6 +258,12 @@ python scripts/qa_cuda.py --model-path models/Qwen3-14B --quantization 4bit \
 - **checkpointing 是拿速度换显存**：0.6B 上吞吐 -45%；显存宽松时可关掉。
 - **flash-attn 安装**：本机实测 `flash-attn 2.7.4.post1` 可在 A10 + torch 2.8/cu128 编译成功；未安装时程序自动回落 `sdpa`。
 - **量化仅 CUDA**：MPS/CPU 上 `quantization` 会直接报错并提示改用 bf16 载入（Mac 48GB 统一内存也不需要量化）。
+- **32B 在 24GB 上的前提**（缺一不可）：`quantization_fp32_cast: false`（跳过 kbit 的 fp32 cast，省约 3GB）、
+  LoRA 只训 `q_proj/v_proj` 且 r=8（可训练参数 134M→10M，优化器状态省约 1.5GB）、`max_seq_len≤128`、
+  `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`。实测峰值 19.8GB，可跑通 5 步，但**只适合验证链路**，
+  训练/生成都很慢（33 tok/s / 问答约 20 tok/s），质量档仍推荐 14B。
+- **32B 模型放 `/tmp`**：权重 65GB，本机 `/mnt/workspace` 余量不足；`configs/cuda-a10-32b-qlora.yaml` 里
+  `dest: /tmp/Qwen3-32B`，实例重启会丢，需要时重新下载。
 
 ## 六、与 Apple Silicon 版本的差异
 

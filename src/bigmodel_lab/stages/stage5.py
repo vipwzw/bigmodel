@@ -145,9 +145,14 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
     quantization = settings.get("quantization")
     if quantization and not base_dtype:
         base_dtype = "bfloat16"
-    inventory = _model_inventory(
-        resources, stage_config, device, dtype_name=base_dtype, quantization=quantization
-    )
+    if stage_config.get("inventory", True):
+        inventory = _model_inventory(
+            resources, stage_config, device, dtype_name=base_dtype, quantization=quantization
+        )
+    else:
+        # 大模型（如 24GB 上的 32B QLoRA）加载一次就要数分钟，清单检查可关闭以省时/降 OOM 风险
+        inventory = {}
+        logger.info("按配置跳过模型清单检查（stage5.inventory=false）")
     ctx.write_json_artifact("model_inventory.json", inventory)
     logger.info("模型清单: %s", {key: value.get("available") for key, value in inventory.items()})
 
@@ -181,6 +186,7 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
             max_samples=None,
             dtype=base_dtype,
             quantization=quantization,
+            quantization_fp32_cast=bool(settings.get("quantization_fp32_cast", True)),
             gradient_checkpointing=bool(settings.get("gradient_checkpointing", False)),
             attn_implementation=settings.get("attn_implementation"),
         )
@@ -294,6 +300,7 @@ def run(*, ctx: RunContext, config: dict[str, Any], budget: Budget) -> dict[str,
             profile=budget.profile,
             dtype=base_dtype,
             quantization=quantization,
+            quantization_fp32_cast=bool(settings.get("quantization_fp32_cast", True)),
             gradient_checkpointing=bool(settings.get("gradient_checkpointing", False)),
             attn_implementation=settings.get("attn_implementation"),
         )
